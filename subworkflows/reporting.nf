@@ -42,7 +42,7 @@ process prepare_report_templates {
     input:
     path(sample_sheet)
     path(qmd_templates)
-    tuple val(report_id), path(report_data, stageAs: "?/*")
+    tuple val(report_id), path(report_data)
 
     output:
     path('*.qmd'), emit: report_templates

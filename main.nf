@@ -140,7 +140,6 @@ workflow{
     // edit the templates to include the parameters
     original_qmd_templates = Channel.fromPath("$projectDir/modules/report/*.qmd").collect()
 
-    report_data.view()
     prepare_report_templates(
         sample_sheet,
         original_qmd_templates,
