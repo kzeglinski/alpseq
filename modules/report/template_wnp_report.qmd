@@ -40,6 +40,7 @@ Want to know more about how the results were generated? Check the bottom of the 
 source("_template/pre_render_script.R")
 source("_template/panning_pre_render.R")
 metadata <- filter(metadata, report_id == params$analysis_name)
+all_counts_filtered <- filter(all_counts_filtered, report_id == params$analysis_name)
 ```
 
 ## Top 100 most abundant sequences in each round
@@ -144,6 +145,31 @@ enriched_tree$interactive_plot
 
 ## Analysis method
 
-TODO: put a mermaid diagram of the method here
+Raw sequencing reads are first trimmed (to remove sequencing adapters) and merged (as two paired reads are required to cover the entire nanobody sequence) using the software [TrimGalore](https://github.com/FelixKrueger/TrimGalore) and [FLASH](https://ccb.jhu.edu/software/FLASH/), respectively. Then, quality control of the run is performed with [multiQC](https://github.com/MultiQC/MultiQC). To identify the important parts of the nanobody sequence (for example the germline genes and CDRs), [IgBLAST](https://ncbi.github.io/igblast/) is used with a custom alpaca reference (created using VDJ sequences deposited in the [IMGT database](https://www.imgt.org/vquest/refseqh.html)).
 
-lkjsadlkasjdlkjwqijjwnkjnmznc,jnasjknd
+Before analysis, reads that likely represent sequencing errors: those containing frameshifts, stop codons or having very low counts per million (CPM) are removed. Filtered nanobody sequences are then tracked through the panning process to determine their enrichment (measured as log2 fold change from Round 0, before panning to the end of the panning process, usually Round 2). Enriched nanobodies are then clustered in order to remove redundancy, and if there are a large number of clusters, a top 100 is chosen.
+
+```{mermaid}
+%%{
+  init: {
+    'theme': 'base',
+    'themeVariables': {
+      'primaryColor': '#fbf0ed',
+      'primaryTextColor': '#e83e8c',
+      'primaryBorderColor': '#e83e8c',
+      'lineColor': '#FF784F',
+      'secondaryColor': '#006100',
+      'tertiaryColor': '#fff'
+    }
+  }
+}%%
+
+flowchart TD
+import["Raw sequencing read pairs"] --> trim_merge["Trim and merge raw reads"]
+trim_merge --> seqQC["Quality control of sequencing run"]
+seqQC --> annotate["Annotate nanobody germline genes, CDRs"]
+annotate --> filtering["Filter to remove sequencing errors"]
+filtering --> enrichment["Determine enrichment (log2 fold change) across panning rounds"]
+enrichment --> clustering["Group similar nanobodies into clusters"]
+clustering --> top_100["If required, narrow enriched clusters down to a top 100"]
+```

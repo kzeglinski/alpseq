@@ -59,13 +59,13 @@ percent_passing_trim_merge <- vroom("percentage_passing_trim_merge.tsv")
 
 # define the ideal numbers of reads that we will draw lines for on the plot
 ideal_thresholds <- data.frame(
-    round = c(0, 1, 2), threshold = c(2000000, 500000, 100000))
+    Round = c(0, 1, 2), threshold = c(2000000, 500000, 100000))
 
 # plot the data
 percent_passing_trim_merge %>%
     left_join(metadata, by = c("sequence_id" = "sample_num")) %>%
-    mutate(round = as.factor(floor(round))) %>% # round to factor
-    ggplot(aes(x = sequence_id, y = num_reads_after, fill = round)) +
+    mutate(Round = as.factor(floor(round))) %>% # round to factor
+    ggplot(aes(x = sequence_id, y = num_reads_after, fill = Round)) +
         geom_col() +
         geom_hline(data = ideal_thresholds, aes(yintercept = threshold),
                    colour="#002060") +
@@ -74,7 +74,7 @@ percent_passing_trim_merge %>%
         xlab("Sample ID") +
         ggtitle("Number of read pairs") +
         theme(axis.text.x = element_text(angle = 90, size = 10, vjust = 0.5)) +
-        facet_grid(~round, scales = "free_x", space = "free")
+        facet_grid(~Round, scales = "free_x", space = "free")
 ```
 
 #### Sequence quality histograms

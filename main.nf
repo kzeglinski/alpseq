@@ -23,7 +23,7 @@ log.info """
 Usage: nextflow run ./nanobody_preprocessing/main.nf --fastq_dir [input path] --sample_sheet [sample sheet]
 --help                : prints this help message
 Required arguments:
---out_dir             : where the output files will be written to (default: "$projectDir/results)
+--out_dir             : where the output files will be written to (default: "$projectDir/results")
 --fastq_dir           : where the input fastq files are located
 --sample_sheet        : location of the .csv sample sheet (format: sample_num,library,antigen,round,replicate)
 Optional (only needed for advanced users)
@@ -146,14 +146,17 @@ workflow{
         report_data)
 
     edited_qmd_templates = prepare_report_templates.out.report_templates.collect()
-edited_qmd_templates.view()
 
-    render_report(
+    // only render the pan report if qc_only is false
+    if(!params.qc_only){
+        render_report(
         sample_sheet,
         template_dir,
         extensions_dir,
         edited_qmd_templates,
         report_data)
+
+    }
 
     render_qc_report(
         processed_tsv_for_qc_report,
