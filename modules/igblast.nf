@@ -3,6 +3,7 @@
 process igblast {
     tag "$sequence_id"
     label 'process_low'
+    errorStrategy 'retry'
 
     conda (params.enable_conda ? 'bioconda::igblast=1.19.0' : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
