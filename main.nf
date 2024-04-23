@@ -93,8 +93,7 @@ workflow{
     parse_sample_sheet(fastq_dir, sample_sheet)
     sample_read_pairs = parse_sample_sheet.out.samples_R1_R2
     report_sample = parse_sample_sheet.out.report_sample //association bw sample ID and report ID
-
-    // TODO: avoid re-running shared R0s but now cbf
+    sample_sheet_checked = parse_sample_sheet.out.sample_sheet_checked //sample sheet with optional columns filled out
 
     // trim and merge the data
     trim_merge(sample_read_pairs, adapter_r1, adapter_r2, maximum_overlap)
@@ -126,6 +125,7 @@ workflow{
     .collect()
     .set{processed_tsv_for_qc_report}
 
+//report_sample.view()
     report_sample
         .combine(processed_tsv, by: 0) // associate TSVs with reports
         .map{ it -> tuple(it[1], *it[2])} //don't need sample ID anymore, use *it[2] to unlist
@@ -133,34 +133,34 @@ workflow{
         // now it's like [report_id, [v_gene_files], [nucleotide files], etc...]
         // we want all TSVs in one list so they're easy to stage
         // also this is more resilient to changes in the number/type of TSVs
-        .map{it -> tuple(it[0], it[1..-1].flatten())}
+        .map{it -> tuple(it[0], it[1..-1].flatten().unique())}
         .set{report_data}
-
     // reporting
     // edit the templates to include the parameters
     original_qmd_templates = Channel.fromPath("$projectDir/modules/report/*.qmd").collect()
 
-    prepare_report_templates(
-        sample_sheet,
-        original_qmd_templates,
-        report_data)
 
-    edited_qmd_templates = prepare_report_templates.out.report_templates.collect()
 
     // only render the pan report if qc_only is false
     if(!params.qc_only){
+        prepare_report_templates(
+        sample_sheet_checked,
+        original_qmd_templates,
+        report_data)
+
+        edited_qmd_templates = prepare_report_templates.out.report_templates.collect()
+        
         render_report(
-        sample_sheet,
+        sample_sheet_checked,
         template_dir,
         extensions_dir,
         edited_qmd_templates,
         report_data)
-
     }
 
     render_qc_report(
         processed_tsv_for_qc_report,
-        sample_sheet,
+        sample_sheet_checked,
         multiqc_plots,
         percentage_passing_trim_merge,
         template_dir,

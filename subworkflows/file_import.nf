@@ -33,6 +33,7 @@ workflow parse_sample_sheet {
     emit:
         samples_R1_R2
         report_sample
+        sample_sheet_checked
 
 }
 
