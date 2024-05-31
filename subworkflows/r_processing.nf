@@ -2,7 +2,7 @@ process run_r_script {
     tag "$sequence_id"
     label 'process_high'
     publishDir "${params.out_dir}/processed_tsv", mode: 'copy', pattern: "*.tsv"
-    container "library://kzeglinski/nanologix/nanologix-report:v0.3.0"
+    container "library://kzeglinski/nanologix/nanologix-report:v0.4.0"
     /* conda (params.enable_conda ? 'r::r-tidyverse=1.2.1' : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/r-tidyverse%3A1.2.1' :
