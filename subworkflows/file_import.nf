@@ -99,17 +99,21 @@ process check_sample_sheet {
     }
 
     # check same sample numbers have the same library, antigen, round
-    for(i in seq_along(unique(sample_sheet[["sample_num"]]))){
-        sample_num <- unique(sample_sheet[["sample_num"]])[i]
-        sample_subset <- sample_sheet[sample_sheet[["sample_num"]] == sample_num,]
-        if(length(unique(sample_subset[["library"]])) > 1){
-            stop("Sample number ", sample_num, " has multiple libraries. Each sample number should be unique to a particular library/antigen/round combination")
-        }
-        if(length(unique(sample_subset[["antigen"]])) > 1){
-            stop("Sample number ", sample_num, " has multiple antigens. Each sample number should be unique to a particular library/antigen/round combination")
-        }
-        if(length(unique(sample_subset[["round"]])) > 1){
-            stop("Sample number ", sample_num, " has multiple rounds. Each sample number should be unique to a particular library/antigen/round combination")
+    for(i in seq_along(unique(sample_sheet[["report_id"]]))){
+            report_id <- unique(sample_sheet[["report_id"]])[i]
+            report_subset <- sample_sheet[sample_sheet[["report_id"]] == report_id,]
+        for(j in seq_along(unique(sample_sheet[["sample_num"]]))){
+            sample_num <- unique(report_subset[["sample_num"]])[j]
+            sample_subset <- report_subset[report_subset[["sample_num"]] == sample_num,]
+            if(length(unique(sample_subset[["library"]])) > 1){
+                stop("Sample number ", sample_num, " has multiple libraries. Each sample number should be unique to a particular library/antigen/round combination")
+            }
+            if(length(unique(sample_subset[["antigen"]])) > 1){
+                stop("Sample number ", sample_num, " has multiple antigens. Each sample number should be unique to a particular library/antigen/round combination")
+            }
+            if(length(unique(sample_subset[["round"]])) > 1){
+                stop("Sample number ", sample_num, " has multiple rounds. Each sample number should be unique to a particular library/antigen/round combination")
+            }
         }
     }
 
