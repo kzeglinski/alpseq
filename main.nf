@@ -55,6 +55,9 @@ sequence_trim_3p = params.sequence_trim_3p
 maximum_overlap = params.maximum_overlap
 chunk_size = params.chunk_size
 
+// boolean
+use_igblast = params.use_igblast
+
 log.info """
 ꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙
  ∩~~~∩
@@ -93,7 +96,7 @@ workflow{
     parse_sample_sheet(fastq_dir, sample_sheet)
     sample_read_pairs = parse_sample_sheet.out.samples_R1_R2
     report_sample = parse_sample_sheet.out.report_sample //association bw sample ID and report ID
-    sample_sheet_checked = parse_sample_sheet.out.sample_sheet_checked //sample sheet with optional columns filled out
+    sample_sheet_checked = parse_sample_sheet.out.sample_sheet_checked.first() //sample sheet with optional columns filled out. have to use first() to make it a value channel
 
     // trim and merge the data
     trim_merge(sample_read_pairs, adapter_r1, adapter_r2, maximum_overlap)
@@ -109,23 +112,17 @@ workflow{
     percentage_passing_trim_merge = quality_control.out.percentage_passing_trim_merge
     multiqc_plots = quality_control.out.multiqc_plots
 
-    // annotation using IgBLAST
-    // first let's split each file into n chunks (default: 100,000)
-    trimmed_and_merged_reads
-        .splitFastq(by: chunk_size, file: true)
-        .set{chunked_merged_reads}
-
-    igblast_tsvs = annotation(chunked_merged_reads, igblast_databases)
+    // annotation using find-cdr3
+    annotated_tsvs = annotation(trimmed_and_merged_reads, igblast_databases, use_igblast)
 
     // R processing of the IgBLAST output
-    r_processing(igblast_tsvs)
+    r_processing(annotated_tsvs)
     processed_tsv = r_processing.out.processed_tsv.collect(flat: false).flatMap{ it -> tuple(it[0], *it[1..-1]) } // why does this work? who knows
     processed_tsv
     .flatMap{ it -> it[1..-1] }
     .collect()
     .set{processed_tsv_for_qc_report}
 
-//report_sample.view()
     report_sample
         .combine(processed_tsv, by: 0) // associate TSVs with reports
         .map{ it -> tuple(it[1], *it[2])} //don't need sample ID anymore, use *it[2] to unlist
@@ -133,13 +130,14 @@ workflow{
         // now it's like [report_id, [v_gene_files], [nucleotide files], etc...]
         // we want all TSVs in one list so they're easy to stage
         // also this is more resilient to changes in the number/type of TSVs
+        .collect(flat: false)
+        .flatMap()
         .map{it -> tuple(it[0], it[1..-1].flatten().unique())}
         .set{report_data}
+
     // reporting
     // edit the templates to include the parameters
     original_qmd_templates = Channel.fromPath("$projectDir/modules/report/*.qmd").collect()
-
-
 
     // only render the pan report if qc_only is false
     if(!params.qc_only){
@@ -149,7 +147,8 @@ workflow{
         report_data)
 
         edited_qmd_templates = prepare_report_templates.out.report_templates.collect()
-        
+        edited_qmd_templates.view()
+
         render_report(
         sample_sheet_checked,
         template_dir,
@@ -166,7 +165,6 @@ workflow{
         template_dir,
         extensions_dir,
         original_qmd_templates)
-
 }
 /* workflow.onComplete{
 log.info """
