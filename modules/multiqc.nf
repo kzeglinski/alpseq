@@ -6,8 +6,8 @@ process multiqc {
 
     conda "bioconda::multiqc=1.14"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/multiqc%3A1.24.1--pyhdfd78af_0' :
-        'quay.io/biocontainers/multiqc:1.24.1--pyhdfd78af_0' }"
+        'oras://community.wave.seqera.io/library/pip_multiqc:3f9d6693c55189c9' :
+        'community.wave.seqera.io/library/pip_multiqc:97bcaba1a9b5034c' }"
 
     input:
     path  multiqc_files, stageAs: "?/*"

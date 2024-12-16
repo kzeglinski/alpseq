@@ -52,7 +52,7 @@ The trees in this section visualise the 100 most abundant **clones** in each rou
 #| message: false
 #| warning: false
 
-render_child <- function(file, i) {
+render_child <- function(i) {
   res = knitr::knit_child(
    text = xfun::read_utf8("./_template/_abundance_tree.qmd"),
    envir = rlang::env(this_round = i, name = paste0("Round ", i)),
@@ -66,7 +66,7 @@ render_child <- function(file, i) {
 ```{r}
 #| results: "asis"
 #| echo: false
-purrr::iwalk(seq(from = 1, to = max(metadata$round)), render_child)
+purrr::walk(unique(metadata$round), render_child)
 ```
 
 ## Enriched clusters

@@ -5,8 +5,8 @@ process fastq_to_fasta {
 
     conda (params.enable_conda ? 'bioconda::seqkit=2.3.1' : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/seqkit%3A2.3.1--h9ee0642_0' :
-        'quay.io/biocontainers/seqkit:2.3.1--h9ee0642_0' }"
+        'oras://community.wave.seqera.io/library/seqkit:1c7b907eba99f587' :
+        'community.wave.seqera.io/library/seqkit:825acf14813a21d5' }"
 
     input:
     tuple val(sequence_id), path(reads)

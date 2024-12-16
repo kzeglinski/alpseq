@@ -7,8 +7,8 @@ process trimgalore {
 
     conda "bioconda::trim-galore=0.6.7"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/trim-galore:0.6.7--hdfd78af_0' :
-        'quay.io/biocontainers/trim-galore:0.6.7--hdfd78af_0' }"
+        'oras://community.wave.seqera.io/library/trim-galore:0deab4fc8772f146' :
+        'community.wave.seqera.io/library/trim-galore:3a7047006bbc4999' }"
 
     input:
     tuple val(sequence_id), path(reads)
