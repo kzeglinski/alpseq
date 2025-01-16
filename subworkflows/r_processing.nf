@@ -89,6 +89,7 @@ process run_r_script {
             sequence_alignment = sequence_alignment[which.max(count)],
             cdr3_count = sum(count)) %>%
         filter(cdr3_count > 1) %>% # remove CDR3 with count of 1
+        filter(nchar(sequence_alignment_aa) > 110) %>% # remove sequences with less than 110 amino acids
         mutate(proportion = cdr3_count / sum(cdr3_count)) %>%
         mutate(cdr3_cpm = proportion * 1000000) %>%
         mutate(sample_id = sample_id) %>%

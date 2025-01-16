@@ -94,7 +94,7 @@ Ideally the quality should be in the green zone (\>Q28) across all bases of the 
 
 \
 
-![](mqc_fastqc_per_base_sequence_quality_plot_1.png)
+![](fastqc_per_base_sequence_quality_plot.png)
 
 #### Per sequence quality scores {#meanquality}
 
@@ -110,7 +110,7 @@ There should be a strong peak in the green zone (\>Q28) for all samples.
 
 \
 
-![](mqc_fastqc_per_sequence_quality_scores_plot_1.png)
+![](fastqc_per_sequence_quality_scores_plot.png)
 
 #### Per sequence GC content
 
@@ -134,7 +134,7 @@ Neither of these are critical issues, they just 'waste' some of our sequencing a
 
 </details>
 
-![](mqc_fastqc_per_sequence_gc_content_plot_Percentages.png)
+![](fastqc_per_sequence_gc_content_plot_Percentages.png)
 
 ### Adapter dimers {#adapter_dimers}
 

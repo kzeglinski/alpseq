@@ -111,13 +111,14 @@ workflow{
     multiqc_report = quality_control.out.multiqc_report
     percentage_passing_trim_merge = quality_control.out.percentage_passing_trim_merge
     multiqc_plots = quality_control.out.multiqc_plots
-
+    multiqc_plots.view()
     // annotation using find-cdr3
     annotated_tsvs = annotation(trimmed_and_merged_reads, igblast_databases, use_igblast)
 
     // R processing of the IgBLAST output
     r_processing(annotated_tsvs)
-    processed_tsv = r_processing.out.processed_tsv.collect(flat: false).flatMap{ it -> tuple(it[0], *it[1..-1]) } // why does this work? who knows
+    //processed_tsv = r_processing.out.processed_tsv.collect(flat: false).flatMap{ it -> tuple(it[0], *it[1..-1]) } // why does this work? who knows
+    processed_tsv = r_processing.out.processed_tsv.collect(flat: false).flatMap{it -> it}
     processed_tsv
     .flatMap{ it -> it[1..-1] }
     .collect()
