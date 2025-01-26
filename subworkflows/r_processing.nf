@@ -3,10 +3,6 @@ process run_r_script {
     label 'process_high'
     publishDir "${params.out_dir}/processed_tsv", mode: 'copy', pattern: "*.tsv"
     container "library://kzeglinski/nanologix/nanologix-report:v0.4.0"
-    /* conda (params.enable_conda ? 'r::r-tidyverse=1.2.1' : null)
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/r-tidyverse%3A1.2.1' :
-        'quay.io/biocontainers/r-tidyverse:1.2.1' }" */
 
     input:
     tuple val(sequence_id), path(merged_tsv)
@@ -89,7 +85,7 @@ process run_r_script {
             sequence_alignment = sequence_alignment[which.max(count)],
             cdr3_count = sum(count)) %>%
         filter(cdr3_count > 1) %>% # remove CDR3 with count of 1
-        filter(nchar(sequence_alignment_aa) > 110) %>% # remove sequences with less than 110 amino acids
+        filter(nchar(sequence_alignment_aa) > 100) %>% # remove sequences with less than 100 amino acids
         mutate(proportion = cdr3_count / sum(cdr3_count)) %>%
         mutate(cdr3_cpm = proportion * 1000000) %>%
         mutate(sample_id = sample_id) %>%

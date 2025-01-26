@@ -111,7 +111,7 @@ workflow{
     multiqc_report = quality_control.out.multiqc_report
     percentage_passing_trim_merge = quality_control.out.percentage_passing_trim_merge
     multiqc_plots = quality_control.out.multiqc_plots
-    multiqc_plots.view()
+
     // annotation using find-cdr3
     annotated_tsvs = annotation(trimmed_and_merged_reads, igblast_databases, use_igblast)
 
@@ -148,7 +148,6 @@ workflow{
         report_data)
 
         edited_qmd_templates = prepare_report_templates.out.report_templates.collect()
-        edited_qmd_templates.view()
 
         render_report(
         sample_sheet_checked,
