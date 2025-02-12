@@ -97,6 +97,7 @@ workflow{
     sample_read_pairs = parse_sample_sheet.out.samples_R1_R2
     report_sample = parse_sample_sheet.out.report_sample //association bw sample ID and report ID
     sample_sheet_checked = parse_sample_sheet.out.sample_sheet_checked.first() //sample sheet with optional columns filled out. have to use first() to make it a value channel
+    sample_sheet_for_pan_reports = parse_sample_sheet.out.sample_sheet_for_pan_reports.first() // sample sheet with only the samples needed for the pan reports
 
     // trim and merge the data
     trim_merge(sample_read_pairs, adapter_r1, adapter_r2, maximum_overlap)
@@ -143,14 +144,14 @@ workflow{
     // only render the pan report if qc_only is false
     if(!params.qc_only){
         prepare_report_templates(
-        sample_sheet_checked,
+        sample_sheet_for_pan_reports,
         original_qmd_templates,
         report_data)
 
         edited_qmd_templates = prepare_report_templates.out.report_templates.collect()
 
         render_report(
-        sample_sheet_checked,
+        sample_sheet_for_pan_reports,
         template_dir,
         extensions_dir,
         edited_qmd_templates,

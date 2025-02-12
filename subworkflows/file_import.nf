@@ -10,6 +10,7 @@ workflow parse_sample_sheet {
 
         sample_sheet_checked = check_sample_sheet.out.sample_sheet_checked
         sample_sheet_deduplicated = check_sample_sheet.out.sample_sheet_deduplicated
+        sample_sheet_for_pan_reports = check_sample_sheet.out.sample_sheet_for_pan_reports
 
         sample_sheet_deduplicated
         .splitCsv(header: true, sep: ',')
@@ -21,7 +22,7 @@ workflow parse_sample_sheet {
         }
         .set { samples_R1_R2 } // set of all fastq R1 R2 per sample
 
-        sample_sheet_checked
+        sample_sheet_for_pan_reports
         .splitCsv(header: true, sep: ',')
         .map{row ->
             def report_ID = row['report_id']
@@ -34,6 +35,7 @@ workflow parse_sample_sheet {
         samples_R1_R2
         report_sample
         sample_sheet_checked
+        sample_sheet_for_pan_reports
 
 }
 
@@ -47,7 +49,8 @@ process check_sample_sheet {
 
     output:
     path('sample_sheet_checked.csv'), emit: sample_sheet_checked
-    path('sample_sheet_no_duplicates.csv'), emit: sample_sheet_deduplicated
+    path('sample_sheet_deduplicated.csv'), emit: sample_sheet_deduplicated
+    path('sample_sheet_for_pan_reports.csv'), emit: sample_sheet_for_pan_reports
 
     script:
     """
@@ -117,9 +120,31 @@ process check_sample_sheet {
         }
     }
 
+    # remove any reports with no R0 sample (still use them for QC tho)
+    sample_sheet_for_reports <- sample_sheet
+    for(i in seq_along(na.omit(unique(sample_sheet[["report_id"]])))){
+        report_id <- na.omit(unique(sample_sheet[["report_id"]]))[i]
+        report_subset <- sample_sheet[sample_sheet[["report_id"]] == report_id,]
+        if(!any(report_subset[["round"]] == 0)){
+            warning("No R0 sample found for report ", report_id, ". Pre-processing and QC will still be performed, but no pan report will be generated.")
+            sample_sheet_for_reports <- sample_sheet_for_reports[sample_sheet_for_reports[["report_id"]] != report_id,]
+        }
+    }
+
+    # remove any reports that only have R0 samples
+    for(i in na.omit(unique(sample_sheet_for_reports[["report_id"]]))){
+        report_id <- i
+        report_subset <- sample_sheet_for_reports[sample_sheet_for_reports[["report_id"]] == report_id,]
+        if(all(report_subset[["round"]] == 0)){
+            warning("Only R0 sample found for report ", report_id, ". Pre-processing and QC will still be performed, but no pan report will be generated.")
+            sample_sheet_for_reports <- sample_sheet_for_reports[sample_sheet_for_reports[["report_id"]] != report_id,]
+        }
+    }
+
     # make sample sheet with no duplicate sample IDs (for pre-processing)
-    sample_sheet_no_duplicates <- sample_sheet[!duplicated(sample_sheet[["sample_num"]]),]
-    vroom_write(sample_sheet_no_duplicates, "sample_sheet_no_duplicates.csv", delim = ",")
+    sample_sheet_deduplicated <- sample_sheet[!duplicated(sample_sheet[["sample_num"]]),]
+    vroom_write(sample_sheet_for_reports, "sample_sheet_for_pan_reports.csv", delim = ",")
+    vroom_write(sample_sheet_deduplicated, "sample_sheet_deduplicated.csv", delim = ",")
     vroom_write(sample_sheet, "sample_sheet_checked.csv", delim = ",")
     """
 }
