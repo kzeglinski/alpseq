@@ -66,7 +66,7 @@ render_child <- function(i) {
 ```{r}
 #| results: "asis"
 #| echo: false
-purrr::walk(unique(metadata$round)[-1], render_child)
+purrr::walk(sort(unique(metadata$round))[-1], render_child)
 ```
 
 ## Enriched clusters
