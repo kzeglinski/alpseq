@@ -85,9 +85,9 @@
             "description": "These are the parameters you should be editing",
             "default": "",
             "properties": {
-                "fastq_dir": {
+                "read_dir": {
                     "type": "string",
-                    "description": "input fastq directory",
+                    "description": "input read directory",
                     "help_text": "Path to a directory where the input (fastq files) are located",
                     "fa_icon": "fas fa-folder-open"
                 },
@@ -109,10 +109,15 @@
                     "help_text": "Whether to only generate a QC report (no panning reports)",
                     "description": "only make qc report",
                     "fa_icon": "fas fa-poll"
+                },
+                "sanger_mode": {
+                    "type": "string",
+                    "description": "for processing sanger sequencing data",
+                    "default": "False",
+                    "fa_icon": "fas fa-dice-four"
                 }
             },
             "required": [
-                "fastq_dir",
                 "sample_sheet",
                 "out_dir"
             ],
@@ -121,10 +126,10 @@
     },
     "allOf": [
         {
-            "$ref": "#/definitions/for_advanced_users_only"
+            "$ref": "#/$defs/for_advanced_users_only"
         },
         {
-            "$ref": "#/definitions/edit_these_parameters"
+            "$ref": "#/$defs/edit_these_parameters"
         }
     ]
 }

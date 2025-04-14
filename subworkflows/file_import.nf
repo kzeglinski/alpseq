@@ -1,7 +1,7 @@
 // adapted from https://github.com/stevekm/nextflow-demos/blob/master/parse-samplesheet/main.nf
 workflow parse_sample_sheet {
     take:
-        fastq_dir
+        read_dir
         sample_sheet
 
     main:
@@ -12,15 +12,28 @@ workflow parse_sample_sheet {
         sample_sheet_deduplicated = check_sample_sheet.out.sample_sheet_deduplicated
         sample_sheet_for_pan_reports = check_sample_sheet.out.sample_sheet_for_pan_reports
 
-        sample_sheet_deduplicated
-        .splitCsv(header: true, sep: ',')
-        .map{row ->
-            def sample_ID = row['sample_num']
-            def reads1 = "${fastq_dir}/" + row['r1_file_name']
-            def reads2 = "${fastq_dir}/" + row['r2_file_name']
-            return [ sample_ID, [reads1, reads2]]
+        if (params.sanger_mode) {
+            // for sanger data, we have a path to a folder containing the ab1 files
+            sample_sheet_deduplicated
+            .splitCsv(header: true, sep: ',')
+            .map{row ->
+                def sample_ID = row['sample_num']
+                def read_dir = row['read_dir']
+                return [ sample_ID, read_dir ]
+            }
+            .set { samples_with_reads }
+
+        } else {
+            sample_sheet_deduplicated
+            .splitCsv(header: true, sep: ',')
+            .map{row ->
+                def sample_ID = row['sample_num']
+                def reads1 = "${read_dir}/" + row['r1_file_name']
+                def reads2 = "${read_dir}/" + row['r2_file_name']
+                return [ sample_ID, [reads1, reads2]]
+            }
+            .set { samples_with_reads } // set of all fastq R1 R2 per sample
         }
-        .set { samples_R1_R2 } // set of all fastq R1 R2 per sample
 
         sample_sheet_for_pan_reports
         .splitCsv(header: true, sep: ',')
@@ -32,7 +45,7 @@ workflow parse_sample_sheet {
         .set { report_sample }
 
     emit:
-        samples_R1_R2
+        samples_with_reads
         report_sample
         sample_sheet_checked
         sample_sheet_for_pan_reports
@@ -56,6 +69,7 @@ process check_sample_sheet {
     """
     #!/usr/bin/env Rscript
     sample_sheet_file <- '$sample_sheet'
+    sanger_mode <- as.logical('${params.sanger_mode}')
 
     # sample sheet checker
     library(vroom)
@@ -69,10 +83,17 @@ process check_sample_sheet {
     sample_sheet <- vroom(sample_sheet_file)
 
     # check all columns present (need either panning_id OR report_id not both)
-    columns_ok <- all(c("sample_num", "round", "r1_file_name", "r2_file_name") %in% colnames(sample_sheet))
-
-    if(!columns_ok){
-        stop("Sample sheet is missing one or more of the required columns: sample_num, round, r1_file_name, r2_file_name")
+    # only need r2_file_name if not full length reads
+    if(sanger_mode){
+        columns_ok <- all(c("sample_num", "round", "read_dir") %in% colnames(sample_sheet))
+        if(!columns_ok){
+            stop("Sample sheet is missing one or more of the required columns: sample_num, round, read_dir")
+        }
+    } else {
+        columns_ok <- all(c("sample_num", "round", "r1_file_name", "r2_file_name") %in% colnames(sample_sheet))
+        if(!columns_ok){
+            stop("Sample sheet is missing one or more of the required columns: sample_num, round, r1_file_name, r2_file_name (if not full length reads)")
+        }
     }
 
     columns_ok <- "panning_id" %in% colnames(sample_sheet) || "report_id" %in% colnames(sample_sheet)

@@ -20,11 +20,11 @@ log.info """
  ξ_ξξ_ξ  ξ_ξξ_ξ
 ꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙
 
-Usage: nextflow run ./nanobody_preprocessing/main.nf --fastq_dir [input path] --sample_sheet [sample sheet]
+Usage: nextflow run ./nanobody_preprocessing/main.nf --read_dir [input path] --sample_sheet [sample sheet]
 --help                : prints this help message
 Required arguments:
 --out_dir             : where the output files will be written to (default: "$projectDir/results")
---fastq_dir           : where the input fastq files are located
+--read_dir           : where the input fastq files are located
 --sample_sheet        : location of the .csv sample sheet (format: sample_num,library,antigen,round,replicate)
 Optional (only needed for advanced users)
 --igblast_databases   : location of the igblast databases (default: "$projectDir/igblast_refs/")
@@ -38,7 +38,7 @@ System.exit(0)
 
 // TODO: parameter validation
 // validate that these files/directories exist
-fastq_dir = params.fastq_dir
+read_dir = params.read_dir
 sample_sheet = params.sample_sheet
 igblast_databases = params.igblast_databases
 template_dir = params.template_dir
@@ -69,7 +69,7 @@ log.info """
  ξ ξ ξ~~~ξ ξ
  ξ_ξξ_ξ  ξ_ξξ_ξ
 ꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙
-★ read directory           : ${params.fastq_dir}
+★ read directory           : ${params.read_dir}
 ★ sample sheet             : ${params.sample_sheet}
 ★ output directory         : ${params.out_dir}
 """
@@ -90,18 +90,63 @@ include { render_qc_report } from './subworkflows/reporting'
  * Run the workflow
  */
 
+// to do: allow for non gzipped input (trimgalore expects it rn)
+
+// make a process that uses tracy to basecall all ab1 files in a directory
+// then cat the resulting fastq files into a single fastq file and gzip
+process basecall_sanger {
+    tag "basecalling sanger"
+    label 'process_low'
+    container "geargenomics/tracy:latest"
+
+    input:
+        tuple val(sample_num), path(read_dir)
+
+    output:
+        tuple val(sample_num), path ('*.fastq.gz'), emit: basecalled_fastq
+
+    script:
+    """
+    #!/usr/bin/env bash
+
+    # basecall all ab1 files in the directory
+    # need to loop over the files in the directory
+    # and run tracy on each one
+    # this is because tracy doesn't support wildcards
+    for file in ${read_dir}/*.ab1; do
+        # get the sample name from the file name
+        file_name=\$(basename "\$file" .ab1)
+        # run tracy on the file
+        tracy basecall \$file --format fastq --otype consensus --output \${file_name}.fastq
+    done
+
+    # cat all the fastq files into a single file and gzip it
+    cat *.fastq | gzip > ${sample_num}_basecalled.fastq.gz
+    """
+}
+
 workflow{
     // read the sample sheet to associate sample names and fastq files
     // output is a tuple with [sample_num, [R1, R2]]
-    parse_sample_sheet(fastq_dir, sample_sheet)
-    sample_read_pairs = parse_sample_sheet.out.samples_R1_R2
+    parse_sample_sheet(read_dir, sample_sheet)
+    sample_read_pairs = parse_sample_sheet.out.samples_with_reads
     report_sample = parse_sample_sheet.out.report_sample //association bw sample ID and report ID
     sample_sheet_checked = parse_sample_sheet.out.sample_sheet_checked.first() //sample sheet with optional columns filled out. have to use first() to make it a value channel
     sample_sheet_for_pan_reports = parse_sample_sheet.out.sample_sheet_for_pan_reports.first() // sample sheet with only the samples needed for the pan reports
 
+    // if sanger, need to basecall the ab1 files
+    if (params.sanger_mode) {
+        basecall_sanger(sample_read_pairs)
+        basecalled_reads = basecall_sanger.out.basecalled_fastq
+        trim_merge(basecalled_reads, adapter_r1, adapter_r2, maximum_overlap)
+    } else{
+        trim_merge(sample_read_pairs, adapter_r1, adapter_r2, maximum_overlap)
+
+    }
+
     // trim and merge the data
-    trim_merge(sample_read_pairs, adapter_r1, adapter_r2, maximum_overlap)
     trimmed_and_merged_reads = trim_merge.out.trimmed_and_merged_reads
+    trimmed_and_merged_reads.view()
     fastqc_reports = trim_merge.out.fastqc_reports.collect()
 
     // perform quality control (multiQC on the fastQC output),
