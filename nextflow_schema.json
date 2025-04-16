@@ -45,14 +45,6 @@
             "fa_icon": "fas fa-exclamation"
         }
     },
-    "allOf": [
-        {
-            "$ref": "#/$defs/for_advanced_users_only"
-        },
-        {
-            "$ref": "#/$defs/edit_these_parameters"
-        }
-    ],
     "properties": {
         "igblast_databases": {
             "type": "string",
