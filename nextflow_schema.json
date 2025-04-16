@@ -5,80 +5,6 @@
     "description": "This pipeline uses Nextflow and processes some kind of data. The JSON Schema was built using the nf-core pipeline schema builder.",
     "type": "object",
     "definitions": {
-        "for_advanced_users_only": {
-            "title": "For advanced users only",
-            "type": "object",
-            "description": "You probably will never need to edit these",
-            "default": "",
-            "fa_icon": "fas fa-ban",
-            "properties": {
-                "igblast_databases": {
-                    "type": "string",
-                    "description": "igblast database location",
-                    "default": "$projectDir/igblast_refs/",
-                    "hidden": true
-                },
-                "adapter_r1": {
-                    "type": "string",
-                    "description": "read 1 adapter sequence",
-                    "default": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA",
-                    "hidden": true
-                },
-                "adapter_r2": {
-                    "type": "string",
-                    "description": "read 2 adapter sequence",
-                    "default": "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT",
-                    "hidden": true
-                },
-                "maximum_overlap": {
-                    "type": "number",
-                    "description": "maximum overlap (in bp) of the two reads",
-                    "default": 250,
-                    "hidden": true
-                },
-                "chunk_size": {
-                    "type": "number",
-                    "description": "number of reads per chunk for annotation",
-                    "default": 25000,
-                    "hidden": true
-                },
-                "enable_conda": {
-                    "type": "boolean",
-                    "description": "enable conda",
-                    "hidden": true
-                },
-                "template_dir": {
-                    "type": "string",
-                    "description": "location of _template.tar for report",
-                    "default": "$projectDir/modules/report/_template.tar",
-                    "hidden": true
-                },
-                "extensions_dir": {
-                    "type": "string",
-                    "default": "$projectDir/modules/report/_extensions.tar",
-                    "description": "location of _extensions.tar for report",
-                    "hidden": true
-                },
-                "quarto_base_yaml": {
-                    "type": "string",
-                    "description": "location of _quarto.yml for report",
-                    "default": "$projectDir/modules/report/template_quarto.yml",
-                    "hidden": true
-                },
-                "sequence_trim_5p": {
-                    "type": "string",
-                    "description": "sequence to trim from 5' end of nanobodies",
-                    "default": "CAGGTGCAGCTGCAG",
-                    "hidden": true
-                },
-                "sequence_trim_3p": {
-                    "type": "string",
-                    "description": "sequence to trim from 3' end of nanobodies",
-                    "default": "GGTCACCGTCTCCTCA",
-                    "hidden": true
-                }
-            }
-        },
         "edit_these_parameters": {
             "title": "Edit these parameters",
             "type": "object",
@@ -116,10 +42,6 @@
                     "fa_icon": "fas fa-dice-four"
                 }
             },
-            "required": [
-                "sample_sheet",
-                "out_dir"
-            ],
             "fa_icon": "fas fa-exclamation"
         }
     },
@@ -130,5 +52,72 @@
         {
             "$ref": "#/$defs/edit_these_parameters"
         }
-    ]
+    ],
+    "properties": {
+        "igblast_databases": {
+            "type": "string",
+            "description": "igblast database location",
+            "default": "$projectDir/igblast_refs/",
+            "hidden": true
+        },
+        "adapter_r1": {
+            "type": "string",
+            "description": "read 1 adapter sequence",
+            "default": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA",
+            "hidden": true
+        },
+        "adapter_r2": {
+            "type": "string",
+            "description": "read 2 adapter sequence",
+            "default": "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT",
+            "hidden": true
+        },
+        "maximum_overlap": {
+            "type": "number",
+            "description": "maximum overlap (in bp) of the two reads",
+            "default": 250,
+            "hidden": true
+        },
+        "chunk_size": {
+            "type": "number",
+            "description": "number of reads per chunk for annotation",
+            "default": 25000,
+            "hidden": true
+        },
+        "enable_conda": {
+            "type": "boolean",
+            "description": "enable conda",
+            "hidden": true
+        },
+        "template_dir": {
+            "type": "string",
+            "description": "location of _template.tar for report",
+            "default": "$projectDir/modules/report/_template.tar",
+            "hidden": true
+        },
+        "extensions_dir": {
+            "type": "string",
+            "default": "$projectDir/modules/report/_extensions.tar",
+            "description": "location of _extensions.tar for report",
+            "hidden": true
+        },
+        "quarto_base_yaml": {
+            "type": "string",
+            "description": "location of _quarto.yml for report",
+            "default": "$projectDir/modules/report/template_quarto.yml",
+            "hidden": true
+        },
+        "sequence_trim_5p": {
+            "type": "string",
+            "description": "sequence to trim from 5' end of nanobodies",
+            "default": "CAGGTGCAGCTGCAG",
+            "hidden": true
+        },
+        "sequence_trim_3p": {
+            "type": "string",
+            "description": "sequence to trim from 3' end of nanobodies",
+            "default": "GGTCACCGTCTCCTCA",
+            "hidden": true
+        }
+    }
 }
