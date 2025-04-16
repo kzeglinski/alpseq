@@ -139,14 +139,12 @@ workflow{
         basecall_sanger(sample_read_pairs)
         basecalled_reads = basecall_sanger.out.basecalled_fastq
         trim_merge(basecalled_reads, adapter_r1, adapter_r2, maximum_overlap)
-    } else{
+    } else {
         trim_merge(sample_read_pairs, adapter_r1, adapter_r2, maximum_overlap)
-
     }
 
     // trim and merge the data
     trimmed_and_merged_reads = trim_merge.out.trimmed_and_merged_reads
-    trimmed_and_merged_reads.view()
     fastqc_reports = trim_merge.out.fastqc_reports.collect()
 
     // perform quality control (multiQC on the fastQC output),

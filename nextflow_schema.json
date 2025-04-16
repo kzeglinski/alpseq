@@ -111,9 +111,8 @@
                     "fa_icon": "fas fa-poll"
                 },
                 "sanger_mode": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "for processing sanger sequencing data",
-                    "default": "False",
                     "fa_icon": "fas fa-dice-four"
                 }
             },

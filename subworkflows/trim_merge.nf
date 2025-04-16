@@ -18,7 +18,7 @@ workflow trim_merge {
             fastqc_reports = trimgalore_sanger.out.fastqc_zip
         } else {
             // trim + qc using trimgalore
-            trimgalore(sample_read_pairs, adapter_r1)
+            trimgalore(sample_read_pairs, adapter_r1, adapter_r2)
             trimmed_reads = trimgalore.out.reads
             fastqc_reports = trimgalore.out.fastqc_zip
             // merging using FLASH
