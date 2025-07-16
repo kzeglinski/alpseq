@@ -39,6 +39,7 @@ process prepare_report_templates {
     stageInMode 'copy'
     container "library://kzeglinski/nanologix/nanologix-report:v0.4.0"
 
+
     input:
     path(sample_sheet)
     path(qmd_templates)

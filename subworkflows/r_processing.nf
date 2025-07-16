@@ -4,6 +4,7 @@ process run_r_script {
     publishDir "${params.out_dir}/processed_tsv", mode: 'copy', pattern: "*.tsv"
     container "library://kzeglinski/nanologix/nanologix-report:v0.4.0"
 
+
     input:
     tuple val(sequence_id), path(merged_tsv)
 
