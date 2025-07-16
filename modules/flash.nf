@@ -8,8 +8,8 @@ process flash {
 
     conda "bioconda::flash=1.2.11"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/flash:1.2.11--hed695b0_5' :
-        'quay.io/biocontainers/flash:1.2.11--hed695b0_5' }"
+        'oras://community.wave.seqera.io/library/flash:89b360363f36dab3' :
+        'community.wave.seqera.io/library/flash:9791f2226797de01' }"
 
     input:
     tuple val(sequence_id), path(reads)

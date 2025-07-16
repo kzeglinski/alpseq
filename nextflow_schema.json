@@ -1,0 +1,115 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "https://raw.githubusercontent.com/kzeglinski/nanologix/refs/heads/wnp/nextflow_schema.json",
+    "title": "Nextflow pipeline parameters",
+    "description": "This pipeline uses Nextflow and processes some kind of data. The JSON Schema was built using the nf-core pipeline schema builder.",
+    "type": "object",
+    "definitions": {
+        "edit_these_parameters": {
+            "title": "Edit these parameters",
+            "type": "object",
+            "description": "These are the parameters you should be editing",
+            "default": "",
+            "properties": {
+                "read_dir": {
+                    "type": "string",
+                    "description": "input read directory",
+                    "help_text": "Path to a directory where the input (fastq files) are located",
+                    "fa_icon": "fas fa-folder-open"
+                },
+                "sample_sheet": {
+                    "type": "string",
+                    "description": "sample sheet",
+                    "help_text": "Path to the .csv formatted sample sheet. Required columns are \"sample_num\", \"round\", \"r1_file_name\", \"r2_file_name\" and either \"panning_id\" or \"report_id\"",
+                    "fa_icon": "fas fa-file-csv"
+                },
+                "out_dir": {
+                    "type": "string",
+                    "description": "output directory",
+                    "default": "$projectDir/results",
+                    "help_text": "Path to a directory where the output files will be written",
+                    "fa_icon": "fas fa-folder-open"
+                },
+                "qc_only": {
+                    "type": "boolean",
+                    "help_text": "Whether to only generate a QC report (no panning reports)",
+                    "description": "only make qc report",
+                    "fa_icon": "fas fa-poll"
+                },
+                "sanger_mode": {
+                    "type": "boolean",
+                    "description": "for processing sanger sequencing data",
+                    "fa_icon": "fas fa-dice-four"
+                }
+            },
+            "fa_icon": "fas fa-exclamation"
+        }
+    },
+    "properties": {
+        "igblast_databases": {
+            "type": "string",
+            "description": "igblast database location",
+            "default": "$projectDir/igblast_refs/",
+            "hidden": true
+        },
+        "adapter_r1": {
+            "type": "string",
+            "description": "read 1 adapter sequence",
+            "default": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA",
+            "hidden": true
+        },
+        "adapter_r2": {
+            "type": "string",
+            "description": "read 2 adapter sequence",
+            "default": "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT",
+            "hidden": true
+        },
+        "maximum_overlap": {
+            "type": "number",
+            "description": "maximum overlap (in bp) of the two reads",
+            "default": 250,
+            "hidden": true
+        },
+        "chunk_size": {
+            "type": "number",
+            "description": "number of reads per chunk for annotation",
+            "default": 25000,
+            "hidden": true
+        },
+        "enable_conda": {
+            "type": "boolean",
+            "description": "enable conda",
+            "hidden": true
+        },
+        "template_dir": {
+            "type": "string",
+            "description": "location of _template.tar for report",
+            "default": "$projectDir/modules/report/_template.tar",
+            "hidden": true
+        },
+        "extensions_dir": {
+            "type": "string",
+            "default": "$projectDir/modules/report/_extensions.tar",
+            "description": "location of _extensions.tar for report",
+            "hidden": true
+        },
+        "quarto_base_yaml": {
+            "type": "string",
+            "description": "location of _quarto.yml for report",
+            "default": "$projectDir/modules/report/template_quarto.yml",
+            "hidden": true
+        },
+        "sequence_trim_5p": {
+            "type": "string",
+            "description": "sequence to trim from 5' end of nanobodies",
+            "default": "CAGGTGCAGCTGCAG",
+            "hidden": true
+        },
+        "sequence_trim_3p": {
+            "type": "string",
+            "description": "sequence to trim from 3' end of nanobodies",
+            "default": "GGTCACCGTCTCCTCA",
+            "hidden": true
+        }
+    }
+}

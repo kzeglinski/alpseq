@@ -3,11 +3,12 @@
 process igblast {
     tag "$sequence_id"
     label 'process_low'
+    errorStrategy 'retry'
 
     conda (params.enable_conda ? 'bioconda::igblast=1.19.0' : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/igblast%3A1.19.0--pl5321h3928612_0' :
-        'quay.io/biocontainers/igblast:1.19.0--pl5321h3928612_0' }"
+        'oras://community.wave.seqera.io/library/igblast:7cbf716402092613' :
+        'community.wave.seqera.io/library/igblast:9e55bf6484824037' }"
 
     input:
     tuple val(sequence_id), path(reads)

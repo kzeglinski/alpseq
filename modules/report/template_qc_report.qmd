@@ -1,0 +1,380 @@
+---
+title: QC report
+date: today
+bibliography: _template/references.bib
+csl: _template/vancouver_superscript.csl
+knitr:
+  opts_chunk:
+    echo: false
+    message: false
+    warning: false
+format:
+    html:
+        grid:
+            body-width: 1000px
+            margin-width: 20px
+        theme: _template/litera_edited.scss
+        embed-resources: true
+        fig-width: 10
+        fig-height: 5
+        fig-dpi: 200
+        toc: true
+        toc-location: left
+        toc-depth: 4
+        toc-expand: 2
+        include-in-header:
+            - text: <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,700;1,700&family=Poppins:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+---
+
+## Introduction
+This report contains the QC results for your recent nanologix run. Please check over these QC results carefully to ensure that both the sequencing libraries and nanobody libraries look ok.
+
+```{r}
+# our pre-render script
+source("./_template/pre_render_script.R")
+```
+
+## Sequencing QC
+
+### MultiQC report {#multiqc_report}
+
+Full sequencing run QC is available in the multiQC[@Ewels2016] report, but not all sections are necessary for our application. In my opinion, these are the most important things we need to look at:
+
+#### Sequence counts {#sequence_counts}
+
+Ideally, we want \~100,000 reads for round 2, \~500,000 reads for round 1 and \~2,000,000 reads for round zero to be confident we are close to saturation. These values are indicated on the graph.
+
+<details class="secondaryDetails">
+
+<summary>What if there are fewer reads?</summary>
+
+<p>Honestly, we can probably get away with fewer reads (but of course it's better to have too many than not enough! Especially so we have some breathing room if there are lots of adapter dimers).\
+Based on diversity estimates, \~ 75,000 reads for round 2, \~250,000 reads for round 1 and \~1,000,000 reads for round 0 should be enough in most cases. If we have less than this, we might still be ok but should check the sequencing saturation before proceeding with the analysis.</p>
+
+</details>
+
+```{r}
+# read in this summary of reads we generated during the pre-processing!
+percent_passing_trim_merge <- vroom("percentage_passing_trim_merge.tsv")
+
+# define the ideal numbers of reads that we will draw lines for on the plot
+ideal_thresholds <- data.frame(
+    Round = c(0, 1, 2, 3, 4), threshold = c(2000000, 500000, 100000, 100000, 100000)) %>%
+    # filter this to only the rounds that are present in the data
+    filter(Round %in% unique(percent_passing_trim_merge$round))
+
+# plot the data
+percent_passing_trim_merge %>%
+    left_join(metadata, by = c("sequence_id" = "sample_num")) %>%
+    mutate(Round = as.factor(floor(round))) %>% # round to factor
+    ggplot(aes(x = sequence_id, y = num_reads_after, fill = Round)) +
+        geom_col() +
+        geom_hline(data = ideal_thresholds, aes(yintercept = threshold),
+                   colour="#002060") +
+        #scale_fill_manual(values = colour_palette) +
+        ylab("Number of read pairs") +
+        xlab("Sample ID") +
+        ggtitle("Number of read pairs") +
+        theme(axis.text.x = element_text(angle = 90, size = 10, vjust = 0.5)) +
+        facet_grid(~Round, scales = "free_x", space = "free")
+```
+
+#### Sequence quality histograms
+
+Ideally the quality should be in the green zone (\>Q28) across all bases of the reads. It's not unusual though for it to dip into the yellow, particularly towards the end of R2.
+
+<details class="secondaryDetails">
+
+<summary>What if the quality is worse than that?</summary>
+
+<p>When using MiSeq (instead of NextSeq\*) it's likely that the quality, particularly in R2 will drop off quite quickly. As part of the pre-processing, reads will be trimmed to a minimum quality of Q20 (99.9% accurate) before proceeding with downstream analyses. So, it only affects our downstream results in so far as that we might be left with fewer reads (because after trimming off low-quality parts, there might not be enough left to merge the reads).\
+\* if you see quality dipping into the red on NextSeq runs then something has gone wrong!</p>
+
+</details>
+
+\
+
+![](fastqc_per_base_sequence_quality_plot.png)
+
+#### Per sequence quality scores {#meanquality}
+
+There should be a strong peak in the green zone (\>Q28) for all samples.
+
+<details class="secondaryDetails">
+
+<summary>What if the peak isn't in the green zone?</summary>
+
+<p>If the peak is in the yellow or red zones, something has gone terribly wrong!</p>
+
+</details>
+
+\
+
+![](fastqc_per_sequence_quality_scores_plot.png)
+
+#### Per sequence GC content
+
+There should be a single peak \~55% GC content.
+
+<details class="secondaryDetails">
+
+<summary>What if there are multiple peaks?</summary>
+
+<p>
+
+Given the homogenous nature of nanobodies, we expect only one peak. The presence of multiple peaks suggests that either:
+
+1.  The data probably wasn't demultiplexed well, and so there are some spike-ins mixed with the nanobody reads.
+
+2.  There are high levels of adapter dimers (in NextSeq data this commonly results in peaks at very high GC content, as adapter dimer reads have a lot of G's due to the dark cycle)
+
+Neither of these are critical issues, they just 'waste' some of our sequencing and so we must ensure that we still have enough reads after taking them into consideration
+
+</p>
+
+</details>
+
+![](fastqc_per_sequence_gc_content_plot_Percentages.png)
+
+### Adapter dimers {#adapter_dimers}
+
+One common problem we can encounter with this protocol is the presence of adapter dimers. These manifest as a low percentage of reads passing through the trimming and merging process. You can check this table to see which samples (if any) had a problem with adapter dimers, and whether they will still have enough reads to meet the [thresholds outlined above](#sequence_counts). You might also want to look at whether any of the various metadata columns seem to correlate in any way with adapter dimer levels.
+
+```{r}
+#| echo: false
+#| message: false
+
+percent_passing_trim_merge %>%
+    arrange(percentage_passing_trim_merge) %>%
+    left_join(metadata, by = c("sequence_id" = "sample_num")) %>%
+    select(-c(num_reads_before, replicate_id_informative,
+             panning_id)) %>%
+    relocate(c(percentage_passing_trim_merge, num_reads_after), .after = "sequence_id") %>%
+    gt() %>% # make the table using gt package
+    opt_interactive(
+        use_highlight = TRUE,
+        use_filters = TRUE,
+        use_compact_mode = TRUE) %>% # interactive, highlight rows as you hover over
+    tab_options(
+        ihtml.use_page_size_select = TRUE, # choose page size
+        ihtml.page_size_default = 10,
+        ihtml.page_size_values = c(5, 10, 20, 30)) %>%
+    tab_header(
+        title = "Percentage of reads passing through the trimming and merging process",
+        subtitle = "Calculated as the number of raw R1, divided by the number of merged reads"
+      ) %>%
+    cols_label(
+        sequence_id = "Sample ID",
+        library = "Library",
+        antigen = "Antigen",
+        round = "Round",
+        #replicate = "Replicate", # TO DO: work out an ifelse or something here
+        #replicate_id = "Replicate ID", # because it throws an error if these columns arent present
+        num_reads_after = "# of reads remaining",
+        percentage_passing_trim_merge = "%"
+        ) %>%
+    text_replace(pattern = "_", replacement = " ") %>%
+    opt_table_font(font = google_font("Poppins")) %>%
+    data_color(columns = percentage_passing_trim_merge, palette =
+      colorRampPalette(c("#63be7b", "#ffeb84", "#f87274"))(11), reverse = TRUE, method = "bin",
+        bins = c(100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0))
+```
+
+## Nanobody library QC
+
+As a quick quality control, it is good to check a few basic features of the nanobody libraries (as opposed to the sequencing libraries, which were covered in the last section).\
+
+### Productivity
+
+We expect the overwhelming majority of reads (\>90%) to be productive, as these nanobodies come from immunised alpacas. A high level of unproductive reads might indicate problems in cloning, or sequencing errors.
+
+<details class="secondaryDetails">
+
+<summary>What makes a read productive?</summary>
+
+<p>
+
+Reads are classified as productive according to the [AIRR specifications](https://docs.airr-community.org/en/stable/datarep/rearrangements.html#fields). They must have:
+
+-   V and J gene alignments in frame
+
+-   no stop codon
+
+-   no frameshift in the V region (relative to the reference)
+
+    </p>
+
+</details>
+
+```{r, message=FALSE}
+# read in all files ending with _productivity_categories.tsv
+productivity_data <- vroom(fs::dir_ls(glob = "*_productivity_categories.tsv"))
+
+# just subset out % productive for plotting
+productivity_data %>%
+    filter(productive == TRUE) -> percent_productive
+
+# plot it
+ggplot(percent_productive, aes(y = percentage, x = sample_id)) +
+    geom_col(fill = "#DC7F9B") +
+    ylab("% Productive") +
+    xlab("Sample ID") +
+    theme(axis.text.x = element_text(angle = 90, size = 10, vjust = 0.5)) +
+    ggtitle("Percentage of productive reads per sample")
+```
+
+::: {.callout-note appearance="simple"}
+From here on, only productive reads are considered in the analysis\
+:::
+
+### V, D and J genes {#sec-vdjgenes}
+
+What we're looking for here is to see a good distribution of the genes across the libraries (a very colourful plot).
+
+<details class="secondaryDetails">
+
+<summary>What if our plot isn't so colourful?</summary>
+
+<p>If we see certain libraries being made up of almost all a single V (or D or J) gene, then that is a sign that the library may be highly duplicated. This is not necessarily a bad thing, particularly for round 2 samples, but in general we would like to see it kept to a minimum.</p>
+
+</details>
+
+```{r, message=FALSE, warning=FALSE}
+# read in all files ending with _v_calls.tsv
+v_calls <- vroom(fs::dir_ls(glob = "*_v_calls.tsv"))
+v_calls %>%
+    mutate(v_gene = str_remove(v_call, "\\*.*$")) %>% # strip extra text from names
+    group_by(sample_id, v_gene) %>%
+    summarise(v_gene_percentage = sum(percentage), across()) %>%
+    filter(str_detect(v_gene, "IGHV3")) %>%
+    filter(v_gene_percentage >= 5) -> v_calls_clean
+
+# plot it
+ggplot(v_calls_clean, aes(y = v_gene_percentage, x = sample_id, fill = v_gene)) +
+    geom_col() +
+    ylab("% V Gene Usage") +
+    xlab("Sample ID") +
+    #scale_fill_manual(values = colour_palette) +
+    theme(axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5)) +
+    ggtitle("V Gene Usage", subtitle = "Only V genes with at least 5% are shown")
+```
+
+```{r, message=FALSE}
+# read in all files ending with _d_calls.tsv
+d_calls <- vroom(fs::dir_ls(glob = "*_d_calls.tsv")) %>% filter(d_call != "d_call")
+
+# plot it
+ggplot(d_calls, aes(y = percentage, x = sample_id, fill = d_call)) +
+    geom_col() +
+    ylab("% D Gene Usage") +
+    xlab("Sample ID") +
+    #scale_fill_manual(values = colour_palette) +
+    theme(axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5)) +
+    ggtitle("D Gene Usage")
+```
+
+```{r, message=FALSE}
+# read in all files ending with _j_calls.tsv
+j_calls <- vroom(fs::dir_ls(glob = "*_j_calls.tsv")) %>% filter(j_call != "j_call")
+
+# plot it
+ggplot(j_calls, aes(y = percentage, x = sample_id, fill = j_call)) +
+    geom_col() +
+    ylab("% J Gene Usage") +
+    xlab("Sample ID") +
+    #scale_fill_manual(values = rev(colour_palette)) +
+    ggtitle("J Gene Usage") +
+    theme(axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5))
+```
+
+### Saturation curves {#sec-saturation}
+
+Ideally, we would like to sequence our nanobody libraries to saturation (see all nanobody sequences that are present). This will allow us to estimate the sequence diversity, as well as to adopt a conservative filtering approach (excluding CDR3s with a count of 1) to reduce the impact of sequencing errors. We can check whether our sequencing is at saturation by plotting a [saturation curve](https://kb.10xgenomics.com/hc/en-us/articles/115005062366-What-is-sequencing-saturation-): taking random samples of size $x$ from the library, and counting how many unique CDR3s are identified, $y$. **If sequencing is at saturation, the curve will 'flatten out'** (come to an asymptote) once we have seen all of the possible unique CDR3s in the library. The $y$ value of this asymptote represents the diversity of the nanobody library.
+
+<details class="secondaryDetails">
+
+<summary>What are we looking for in these plots?</summary>
+
+<p>We want to see that the curves flatten out! If they don't, this means that there are not enough reads to sequence that library to saturation. The filtering strategy may need to be adjusted, or you may have trouble identifying rare clones. Note that the curves sometimes look a bit 'jagged', but this is nothing to worry about (to save time, we only simulate once to create the plot. It would be smoother if we did multiple simulations and averaged them, but I don't think it's necessary.</p>
+
+</details>
+
+```{r}
+#| layout-ncol: 2
+#| fig-dpi: 80
+#| message: false
+#| warning: false
+
+# read in data
+saturation_plot_data <- vroom(fs::dir_ls(glob = "*_saturation_plot_data.tsv"))
+
+plot_list <- list()
+for(i in seq_along(unique(saturation_plot_data$sample_num))){
+    this_sample <- unique(saturation_plot_data$sample_num)[i]
+    this_data <- filter(saturation_plot_data, sample_num == this_sample)
+    this_plot <- ggplot(this_data, aes(x = sample_size, y = number_unique)) +
+        geom_point(col = "#e83e8c") +
+        geom_line(col = "#e83e8c") +
+        labs(x = "Number of reads sampled", y = "Number of unique CDR3s") +
+        ggtitle(paste0("Saturation curve for ", this_sample, ", CDR3s with a count of 1 removed"))
+    plot_list[[this_sample]] <- this_plot
+
+}
+for(i in seq_along(plot_list)){
+    print(plot_list[[i]])
+}
+```
+
+### Estimated library diversity {#sec-diversity}
+
+Using the data from the saturation curves, we can estimate the diversity of our nanobody libraries:
+
+<details class="secondaryDetails">
+
+<summary>How was this estimated?</summary>
+
+<p>The diversity of the library is the asymptote of the saturation curve, but reading the asymptotes is laborious, so as a quick heuristic we can find the point at which the first derivative (gradient) of the saturation curve is at its lowest positive value (when the curve reaches its asymptote, the gradient will be zero)</p>
+
+</details>
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+saturation_plot_data %>%
+    filter(number_unique > 0, derivative > 0) %>%
+    group_by(sample_num) %>%
+    summarise( # choose the diversity at the lowest value of the derivative
+        approx_diversity = number_unique[which.min(derivative)])  %>%
+    mutate(approx_diversity = case_when(
+        approx_diversity >= 1000000 ~ plyr::round_any(approx_diversity, 100000),
+        approx_diversity >= 100000 ~ plyr::round_any(approx_diversity, 10000),
+        approx_diversity >= 10000 ~ plyr::round_any(approx_diversity, 1000),
+        approx_diversity >= 1000 ~ plyr::round_any(approx_diversity, 100),
+        approx_diversity >= 100 ~ plyr::round_any(approx_diversity, 10)
+    )) %>%
+    # now make a pretty table with gt so it's easy to read
+    left_join(metadata, by = "sample_num") %>%
+    select(-contains("id")) %>%
+    gt() %>%
+    opt_interactive(
+        use_highlight = TRUE, # highlight rows as you hover
+        use_filters = TRUE,
+        use_compact_mode = TRUE) %>%
+    tab_options(
+        ihtml.use_page_size_select = TRUE, # choose page size
+        ihtml.page_size_default = 10,
+        ihtml.page_size_values = c(5, 10, 20, 30)) %>%
+    tab_header(
+        title = "Estimated diversity of nanobody libraries",
+        subtitle = "Estimates generated from the first derivative of the saturation curve") %>%
+    cols_label(
+        sample_num = "Sample ID",
+        library = "Library",
+        antigen = "Antigen",
+        round = "Round",
+        #replicate = "Replicate",
+        approx_diversity = "Estimated diversity"
+        ) %>%
+    opt_table_font(font = google_font("Poppins"))
+```

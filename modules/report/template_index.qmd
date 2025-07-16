@@ -1,7 +1,0 @@
-# Preface {.unnumbered}
-
-![](template/nanologix_logo.png){fig-alt="NanoLogix logo" width="700"}
-
-Welcome to your NanoLogix report! You can navigate using the sidebar, or the forward/back buttons at the bottom of the page.
-
-If you have any feedback on the report, or any other parts of the NanoLogix software, please [raise an issue on github](https://github.com/kzeglinski/nanologix/issues) or contact me at zeglinski.k\@wehi.edu.au
