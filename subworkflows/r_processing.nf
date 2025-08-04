@@ -2,7 +2,9 @@ process run_r_script {
     tag "$sequence_id"
     label 'process_high'
     publishDir "${params.out_dir}/processed_tsv", mode: 'copy', pattern: "*.tsv"
-    container "library://kzeglinski/nanologix/nanologix-report:v0.4.0"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'docker://ghcr.io/kzeglinski/alpseq:0.4.0' :
+        'ghcr.io/kzeglinski/alpseq:0.4.0' }"
 
 
     input:
