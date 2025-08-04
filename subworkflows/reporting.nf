@@ -39,7 +39,9 @@ process prepare_report_templates {
     tag "preparing report templates"
     label 'process_low'
     stageInMode 'copy'
-    container "library://kzeglinski/nanologix/nanologix-report:v0.4.0"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'docker://ghcr.io/kzeglinski/alpseq:0.4.0' :
+        'ghcr.io/kzeglinski/alpseq:0.4.0' }"
 
 
     input:
@@ -95,7 +97,9 @@ process render_qc_report {
     label 'process_low'
     publishDir "${params.out_dir}/report/", mode: 'copy', pattern: "*.html"
    // stageInMode 'copy'
-    container "library://kzeglinski/nanologix/nanologix-report:v0.4.0"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'docker://ghcr.io/kzeglinski/alpseq:0.4.0' :
+        'ghcr.io/kzeglinski/alpseq:0.4.0' }"
 
     input:
     path(processed_tsv_for_qc_report)
