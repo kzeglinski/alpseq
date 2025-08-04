@@ -55,7 +55,9 @@ workflow parse_sample_sheet {
 process check_sample_sheet {
     tag "checking sample sheet"
     label 'process_low'
-    container "library://kzeglinski/nanologix/nanologix-report:v0.4.0"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'docker://ghcr.io/kzeglinski/alpseq:0.4.0' :
+        'ghcr.io/kzeglinski/alpseq:0.4.0' }"
 
     input:
     path(sample_sheet)
