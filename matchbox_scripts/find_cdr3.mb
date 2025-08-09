@@ -1,0 +1,16 @@
+fwr4 = TGGGGCAAAGGGACCCAGGTCAC
+
+refs = fasta('trimmed_reference.fasta')
+
+if read is 
+	[_ trimmed_read:(before:(v.seq |1|) cdr3:_ fwr4) _] for v in refs => {
+		cdr3_start = before.seq.len() / 3
+		cdr3_protein = trimmed_read.seq.translate().slice(cdr3_start, cdr3_start + (cdr3.seq.len() / 3))
+		'{read.id}\t{v.id}\t{cdr3.seq}\t{cdr3.seq.translate()}\t{read.seq}\t{read.seq.translate()}'.stdout!()
+	}
+	[_ trimmed_read:(-fwr4 cdr3:_ before:(|1| -v.seq)) _] for v in refs => {
+		cdr3_start = before.seq.len() / 3
+		cdr3_protein = trimmed_read.seq.translate().slice(cdr3_start, cdr3_start + (cdr3.seq.len() / 3))
+		'{read.id}\t{v.id}\t{cdr3.seq}\t{cdr3.seq.translate()}\t{read.seq}\t{read.seq.translate()}'.stdout!()
+	}
+	[_] => '{read.id}\t{read.seq}\t'.stdout!()

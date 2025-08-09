@@ -1,0 +1,15 @@
+fwr4 = TGGGGCAAAGGGACCCAGGTCAC
+codons = csv('codons.csv')
+
+refs = fasta('trimmed_reference.fasta')
+
+if read is 
+	[_ v.seq |3| cdr3:_ fwr4 _]
+        for v in refs => {
+        '{read.id}\t{v.id}\t{cdr3.seq}\t{cdr3.seq.translate()}\t{read.seq}\t{read.seq.translate()}'.stdout!()
+    }
+	[_ -fwr4 cdr3:_ |3| -v.seq _]
+        for v in refs => {
+        '{read.id}\t{v.id}\t{cdr3.seq}\t{cdr3.seq.translate()}\t{read.seq}\t{read.seq.translate()}'.stdout!()
+    }
+	[_] => {'{read.id}\t{read.seq}\t'.stdout!()}

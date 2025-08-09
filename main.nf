@@ -12,8 +12,8 @@ log.info """
 ꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙
  ∩~~~∩
 ξ ･×･ ξ
-ξ ~  ξ   		★ NanoLogix ★
-ξ　  ξ              v0.3.0
+ξ ~  ξ   		  ★ alpseq v0.3.0 ★
+ξ　  ξ              
 ξ　  “~~~~~~_
 ξ　          ξ
  ξ ξ ξ~~~ξ ξ
@@ -41,6 +41,7 @@ System.exit(0)
 read_dir = params.read_dir
 sample_sheet = params.sample_sheet
 igblast_databases = params.igblast_databases
+mb_scripts = params.mb_scripts
 template_dir = params.template_dir
 extensions_dir = params.extensions_dir
 quarto_base_yaml = params.quarto_base_yaml
@@ -62,8 +63,8 @@ log.info """
 ꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙
  ∩~~~∩
 ξ ･×･ ξ
-ξ ~  ξ   		★ NanoLogix ★
-ξ　  ξ              v0.1.0
+ξ ~  ξ   		★ alpseq v0.3.0 ★
+ξ　  ξ              
 ξ　  “~~~~~~_
 ξ　          ξ
  ξ ξ ξ~~~ξ ξ
@@ -156,10 +157,10 @@ workflow{
     percentage_passing_trim_merge = quality_control.out.percentage_passing_trim_merge
     multiqc_plots = quality_control.out.multiqc_plots
 
-    // annotation using find-cdr3
-    annotated_tsvs = annotation(trimmed_and_merged_reads, igblast_databases, use_igblast)
+    // annotation using
+    annotated_tsvs = annotation(trimmed_and_merged_reads, igblast_databases, use_igblast, mb_scripts)
 
-    // R processing of the IgBLAST output
+    /* // R processing of the IgBLAST output
     r_processing(annotated_tsvs)
     //processed_tsv = r_processing.out.processed_tsv.collect(flat: false).flatMap{ it -> tuple(it[0], *it[1..-1]) } // why does this work? who knows
     processed_tsv = r_processing.out.processed_tsv.collect(flat: false).flatMap{it -> it}
@@ -208,24 +209,6 @@ workflow{
         percentage_passing_trim_merge,
         template_dir,
         extensions_dir,
-        original_qmd_templates)
+        original_qmd_templates) */
+
 }
-/* workflow.onComplete{
-log.info """
-꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙
- ∩~~~∩
-ξ ･×･ ξ         ~~ THANK-YOU FOR RUNNING ~~
-ξ ~  ξ   		★ NanoLogix ★
-ξ　  ξ              v0.3.0
-ξ　  “~~~~~~_
-ξ　          ξ
- ξ ξ ξ~~~ξ ξ
- ξ_ξξ_ξ  ξ_ξξ_ξ
-꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙
-You might like to look at the following:
-★ output directory                             : ${params.out_dir}
-★ multi QC report                              : ${params.out_dir}/multiqc_report.html
-★ how many reads passed the trimming & merging : ${params.out_dir}/percentage_passing_trim_merge.tsv
-"""
-}
- */

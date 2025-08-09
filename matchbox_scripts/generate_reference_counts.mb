@@ -1,0 +1,10 @@
+fwr4 = TGGGGCAAAGGGACCCAGGTCAC
+ref_file = fasta(args.references)
+
+# discover fwr4 and then we could use that for the rest of the scripts (?)
+# if read is [_ custom_fwr4:fwr4 _] => count!(custom_fwr4.seq, name='fwr4s')
+
+if read is [_ v.seq cdr3:_ fwr4 _] for v in ref_file => {
+	v.id.count!(name='names')
+}
+

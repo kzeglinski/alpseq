@@ -1,6 +1,7 @@
-include { fastq_to_fasta } from '../modules/fastq_to_fasta'
+include { fastq_to_fasta } from '../modules/helpers'
+include { sample_1000 } from '../modules/helpers'
 include { igblast } from '../modules/igblast'
-include { find_cdr3 } from '../modules/find_cdr3'
+include { matchbox_annotate } from '../modules/matchbox_annotate'
 
 process merge_chunked_tsvs {
     tag "$sequence_id"
@@ -24,13 +25,26 @@ workflow annotation {
         trimmed_and_merged_reads
         igblast_databases
         use_igblast
+        mb_scripts
 
     main:
 
         if (use_igblast == false) {
             // use jakob's cdr3 finder
-            // cdr3_finder()
-            final_tsvs = find_cdr3(trimmed_and_merged_reads, igblast_databases).annotation
+            // sample 1000 reads
+            
+
+            // use matchbox
+            trimmed_and_merged_reads
+                .splitFastq(by: 1000000, file: true)
+                .set{chunked_merged_reads}
+
+            reads_with_sample = sample_1000(chunked_merged_reads)
+            annotated_tsvs = matchbox_annotate(reads_with_sample, igblast_databases, mb_scripts).annotation
+
+            // merge the tsvs
+            grouped_tsvs = annotated_tsvs.groupTuple(by: 0) // group by first element (the sample ID)
+            final_tsvs = merge_chunked_tsvs(grouped_tsvs) // cat all of them
 
         } else {
             // use igblast
@@ -38,7 +52,6 @@ workflow annotation {
             trimmed_and_merged_reads
                 .splitFastq(by: params.chunk_size, file: true)
                 .set{chunked_merged_reads}
-
 
             // convert fastq to fasta (needed to run igblast)
             chunked_merged_fastas = fastq_to_fasta(chunked_merged_reads)
