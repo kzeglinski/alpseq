@@ -6,7 +6,7 @@ include { matchbox_annotate } from '../modules/matchbox_annotate'
 process merge_chunked_tsvs {
     tag "$sequence_id"
     label 'process_low'
-    publishDir "${params.out_dir}/original_annotation_tsv", mode: 'copy', pattern: "*_merged.tsv"
+    publishDir "${params.out_dir}/original_annotation", mode: 'copy', pattern: "*_merged.tsv"
 
     input:
     tuple val(sequence_id), path(tsvs)
@@ -17,6 +17,23 @@ process merge_chunked_tsvs {
     script:
     """
     cat *.tsv > ${sequence_id}_merged.tsv
+    """
+}
+
+process merge_chunked_csvs {
+    tag "$sequence_id"
+    label 'process_low'
+    publishDir "${params.out_dir}/original_annotation", mode: 'copy', pattern: "*_merged.csv"
+
+    input:
+    tuple val(sequence_id), path(tsvs)
+
+    output:
+    tuple val(sequence_id), path("*_merged.csv")
+
+    script:
+    """
+    cat *.csv > ${sequence_id}_merged.csv
     """
 }
 
@@ -31,20 +48,19 @@ workflow annotation {
 
         if (use_igblast == false) {
             // use jakob's cdr3 finder
-            // sample 1000 reads
-            
-
-            // use matchbox
+            // split reads into chunks
             trimmed_and_merged_reads
                 .splitFastq(by: 1000000, file: true)
                 .set{chunked_merged_reads}
-
+            // sample 1000 reads
             reads_with_sample = sample_1000(chunked_merged_reads)
-            annotated_tsvs = matchbox_annotate(reads_with_sample, igblast_databases, mb_scripts).annotation
+
+            // use matchbox
+            annotated_csv = matchbox_annotate(reads_with_sample, igblast_databases, mb_scripts).annotation
 
             // merge the tsvs
-            grouped_tsvs = annotated_tsvs.groupTuple(by: 0) // group by first element (the sample ID)
-            final_tsvs = merge_chunked_tsvs(grouped_tsvs) // cat all of them
+            grouped_csvs = annotated_csv.groupTuple(by: 0) // group by first element (the sample ID)
+            final_annotation = merge_chunked_csvs(grouped_csvs) // cat all of them
 
         } else {
             // use igblast
@@ -69,9 +85,9 @@ workflow annotation {
 
             // merge the tsvs
             grouped_tsvs = annotated_tsv.groupTuple(by: 0) // group by first element (the sample ID)
-            final_tsvs = merge_chunked_tsvs(grouped_tsvs) // cat all of them
+            final_annotation = merge_chunked_tsvs(grouped_tsvs) // cat all of them
         }
 
     emit:
-        final_tsvs
+        final_annotation
  }

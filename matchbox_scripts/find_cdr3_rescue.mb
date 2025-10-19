@@ -3,13 +3,15 @@ codons = csv('codons.csv')
 
 refs = fasta('trimmed_reference.fasta')
 
-if read is 
-	[_ v.seq |3| cdr3:_ fwr4 _]
-        for v in refs => {
-        '{read.id}\t{v.id}\t{cdr3.seq}\t{cdr3.seq.translate()}\t{read.seq}\t{read.seq.translate()}'.stdout!()
+if read matches {
+    [before:(_ v.seq |3|) cdr3:_ fwr4 _] for v in refs => {
+        start_pos = before.seq.len() % 3
+        '{read.id},{v.id},{cdr3.seq},{cdr3.seq.translate()},{read.seq.slice(start_pos, read.seq.len())},{read.seq.slice(start_pos, read.seq.len()).translate()}'.stdout!()
     }
-	[_ -fwr4 cdr3:_ |3| -v.seq _]
-        for v in refs => {
-        '{read.id}\t{v.id}\t{cdr3.seq}\t{cdr3.seq.translate()}\t{read.seq}\t{read.seq.translate()}'.stdout!()
+	[_ -fwr4 cdr3:_ before:(|3| -v.seq _)] for v in refs => {
+        start_pos = before.seq.len() % 3
+        '{read.id},{v.id},{(-cdr3.seq)},{(-cdr3.seq).translate()},{(-read.seq).slice(start_pos, read.seq.len())},{(-read.seq).slice(start_pos, read.seq.len()).translate()}'.stdout!()
     }
-	[_] => {'{read.id}\t{read.seq}\t'.stdout!()}
+	[_] => {'{read.id},NA,NA,NA,{read.seq},{read.seq.translate()}'.stdout!()}
+}
+

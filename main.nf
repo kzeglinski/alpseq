@@ -160,9 +160,10 @@ workflow{
     // annotation using
     annotated_tsvs = annotation(trimmed_and_merged_reads, igblast_databases, use_igblast, mb_scripts)
 
-    /* // R processing of the IgBLAST output
-    r_processing(annotated_tsvs)
-    //processed_tsv = r_processing.out.processed_tsv.collect(flat: false).flatMap{ it -> tuple(it[0], *it[1..-1]) } // why does this work? who knows
+    // R processing of the IgBLAST output
+    r_processing(annotated_tsvs, use_igblast)
+
+
     processed_tsv = r_processing.out.processed_tsv.collect(flat: false).flatMap{it -> it}
     processed_tsv
     .flatMap{ it -> it[1..-1] }
@@ -190,7 +191,8 @@ workflow{
         prepare_report_templates(
         sample_sheet_for_pan_reports,
         original_qmd_templates,
-        report_data)
+        report_data,
+        use_igblast)
 
         edited_qmd_templates = prepare_report_templates.out.report_templates.collect()
 
@@ -209,6 +211,7 @@ workflow{
         percentage_passing_trim_merge,
         template_dir,
         extensions_dir,
-        original_qmd_templates) */
+        original_qmd_templates,
+        use_igblast)
 
 }

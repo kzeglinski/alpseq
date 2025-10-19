@@ -1,6 +1,6 @@
 names = csv('names_sorted.csv')
 
-if names.contains({name= read.id}) => {
+if names.contains({name = read.id}) {
 	cysteine_location = read.seq.to_str().to_upper().translate().find_last('C') * 3
 	before_cysteine = read.seq.slice(0, cysteine_location)
 

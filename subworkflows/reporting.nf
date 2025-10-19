@@ -39,13 +39,16 @@ process prepare_report_templates {
     tag "preparing report templates"
     label 'process_low'
     stageInMode 'copy'
-    container "library://kzeglinski/nanologix/nanologix-report:v0.4.0"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'docker://ghcr.io/kzeglinski/alpseq:0.4.0' :
+        'ghcr.io/kzeglinski/alpseq:0.4.0' }"
 
 
     input:
     path(sample_sheet)
     path(qmd_templates)
     tuple val(report_id), path(report_data)
+    val(use_igblast)
 
     output:
     path('*.qmd'), emit: report_templates
@@ -82,7 +85,12 @@ process prepare_report_templates {
     }
 
     # wnp_report
-    readLines("template_wnp_report.qmd") %>%
+    if (as.logical('$use_igblast')) {
+        template = readLines("template_wnp_report.qmd")
+    } else {
+        template = readLines("template_wnp_report_mb.qmd")
+    }
+    template %>%
         stringr::str_replace(pattern = "param_analysis_name", replace = "${report_id}") %>%
         stringr::str_replace(pattern = "param_panning_id", replace = as.character(panning_id)) %>%
         writeLines(con = "${report_id}_report.qmd")
@@ -95,7 +103,9 @@ process render_qc_report {
     label 'process_low'
     publishDir "${params.out_dir}/report/", mode: 'copy', pattern: "*.html"
    // stageInMode 'copy'
-    container "library://kzeglinski/nanologix/nanologix-report:v0.4.0"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'docker://ghcr.io/kzeglinski/alpseq:0.4.0' :
+        'ghcr.io/kzeglinski/alpseq:0.4.0' }"
 
     input:
     path(processed_tsv_for_qc_report)
@@ -105,6 +115,7 @@ process render_qc_report {
     path(template_dir)
     path(extensions_dir)
     path(qmd_templates)
+    val(use_igblast)
 
     output:
     path('*.html'), emit: report
@@ -121,7 +132,10 @@ process render_qc_report {
     tar -xvf _extensions.tar
     tar -xvf _template.tar
 
-    quarto render template_qc_report.qmd --log qc_report.log
-
+    if [ $use_igblast ]; then
+        quarto render qc_report.qmd --log qc_report.log
+    else
+        quarto render qc_report_mb.qmd --log qc_report.log
+    fi
     """
 }

@@ -24,7 +24,7 @@ process igblast {
 
     script:
     """
-    read_base_name=\$(basename "$reads" .fastq)
+    read_base_name=\$(basename "$reads" .fasta)
     # run igblast
     # outfmt 19 = AIRR format (tsv, easy to use in downstream steps)
     # num_alignments_* = only report the best hit
