@@ -1,8 +1,18 @@
-# NanoLogix
-Nextflow pipeline for analysing illumina 2x300 nanobody sequencing data
+# alpseq
+Nextflow pipeline for analysing illumina 2x300bp nanobody sequencing data
 
-<img width="1280" alt="nanologix logo@2x" src="https://github.com/kzeglinski/nanologix/assets/49138438/e8c5ec44-61bf-4503-9983-7078ee6c6562">
+<img width="1280" alt="alpseq logo" src="alpseq_logo.png">
 
-Before running the pipeline, make sure to edit the nextflow.config file to suit your system and point to the correct input and output directories.
-Detailed tutorial/documentation coming soon!
+:star: Before running the pipeline, make sure to edit the nextflow.config file to suit your system and point to the correct input and output directories.
+
+## Usage
+The quickest way to run *alpseq* is by running the command below (after editing the `nextflow.config` file):
+
+```
+nextflow run ./main.nf -profile <docker or singularity> 
+```
+Or by running it through the [seqera cloud platform's](https://cloud.seqera.io/) GUI.
+
+For detailed usage instructions, [check out the documentation website](https://kzeglinski.github.io/alpseq_documentation/)
+
 
