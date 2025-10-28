@@ -13,6 +13,6 @@ nextflow run ./main.nf -profile <docker or singularity>
 ```
 Or by running it through the [seqera cloud platform's](https://cloud.seqera.io/) GUI.
 
-For detailed usage instructions, [check out the documentation website](https://kzeglinski.github.io/alpseq_documentation/)
+For detailed usage instructions, [check out the documentation website](https://kzeglinski.github.io/alpseq_docs/)
 
 
