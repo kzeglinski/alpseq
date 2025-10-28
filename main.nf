@@ -77,7 +77,7 @@ log.info """
 ★ sample sheet             : ${params.sample_sheet}
 ★ output directory         : ${params.out_dir}
 ★ only perform qc?         : ${params.qc_only}
-★ use igblast              : ${params.true}
+★ use igblast              : ${params.use_igblast}
 """
 
 /*
