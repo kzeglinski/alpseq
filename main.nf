@@ -5,14 +5,14 @@
  * 2x300 illumina sequencing data from nanobodies
  */
 
-version = "v0.3.0"
+version = "v0.4.0"
 
 if(params.help == true){
 log.info """
 ꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙
  ∩~~~∩
 ξ ･×･ ξ
-ξ ~  ξ   		  ★ alpseq v0.3.0 ★
+ξ ~  ξ   		  ★ alpseq v0.4.0 ★
 ξ　  ξ              
 ξ　  “~~~~~~_
 ξ　          ξ
@@ -24,14 +24,17 @@ Usage: nextflow run ./nanobody_preprocessing/main.nf --read_dir [input path] --s
 --help                : prints this help message
 Required arguments:
 --out_dir             : where the output files will be written to (default: "$projectDir/results")
---read_dir           : where the input fastq files are located
+--read_dir            : where the input fastq files are located
 --sample_sheet        : location of the .csv sample sheet (format: sample_num,library,antigen,round,replicate)
+Other helpful settings:
+--use_igblast         : whether or not to use IgBLAST for annotation (default: true)
+--qc_only             : whether to perfom panning analysis (enrichment etc) or just quality control (default: false)
 Optional (only needed for advanced users)
 --igblast_databases   : location of the igblast databases (default: "$projectDir/igblast_refs/")
 --adapter_r1          : pattern for trimgalore to trim off R1 (default: "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA")
 --adapter_r2          : pattern for trimgalore to trim off R2 (default: "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT")
 --maximum_overlap     : maximum overlap (in bp) of the two reads (default: 200)
---chunk_size          : size of chunks to use for IgBLAST processing (default: 100000)
+--chunk_size          : size of chunks to use for annotation (default: 25000)
 """
 System.exit(0)
 }
@@ -73,6 +76,8 @@ log.info """
 ★ read directory           : ${params.read_dir}
 ★ sample sheet             : ${params.sample_sheet}
 ★ output directory         : ${params.out_dir}
+★ only perform qc?         : ${params.qc_only}
+★ use igblast              : ${params.true}
 """
 
 /*

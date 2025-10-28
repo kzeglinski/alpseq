@@ -18,8 +18,8 @@ workflow parse_sample_sheet {
             .splitCsv(header: true, sep: ',')
             .map{row ->
                 def sample_ID = row['sample_num']
-                def read_dir = row['read_dir']
-                return [ sample_ID, read_dir ]
+                def read_directory = row['read_dir']
+                return [ sample_ID, read_directory ]
             }
             .set { samples_with_reads }
 
