@@ -30,7 +30,6 @@ process percentage_passing_trim_merge {
 }
 
 process cat_all_percentage_passing_trim_merge {
-    tag "$sequence_id"
     label 'process_low'
     publishDir "${params.out_dir}", mode: 'copy', pattern: "percentage_passing_trim_merge.tsv"
 
