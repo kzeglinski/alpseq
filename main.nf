@@ -5,14 +5,14 @@
  * 2x300 illumina sequencing data from nanobodies
  */
 
-version = "v0.4.0"
+version = "v0.5.0"
 
 if(params.help == true){
 log.info """
 ꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙
  ∩~~~∩
 ξ ･×･ ξ
-ξ ~  ξ   		  ★ alpseq v0.4.0 ★
+ξ ~  ξ   		  ★ alpseq v0.5.0 ★
 ξ　  ξ              
 ξ　  “~~~~~~_
 ξ　          ξ
@@ -66,7 +66,7 @@ log.info """
 ꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙
  ∩~~~∩
 ξ ･×･ ξ
-ξ ~  ξ   		★ alpseq v0.3.0 ★
+ξ ~  ξ   		★ alpseq v0.5.0 ★
 ξ　  ξ              
 ξ　  “~~~~~~_
 ξ　          ξ

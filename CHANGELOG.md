@@ -17,3 +17,8 @@ Name changed to alpseq! Full docker support added also. Reporting module has bee
 ## [v0.4.0]
 
 Updates to clustering scheme (threshold is now 80%), added support for [matchbox](https://github.com/jakob-schuster/matchbox) based annotation of nanobodies (faster)
+
+## [v0.5.0]
+
+Fixed some bugs (broken tag for process, missing docker container for matchbox, error in clustering when the number of rounds does not equal 2)
+Added parameter validation
