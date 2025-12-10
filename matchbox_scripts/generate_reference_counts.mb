@@ -1,4 +1,4 @@
-fwr4 = TGGGGCAAAGGGACCCAGGTCAC
+fwr4 = args.fwr4
 ref_file = fasta(args.references)
 
 # discover fwr4 and then we could use that for the rest of the scripts (?)

@@ -43,6 +43,8 @@ workflow annotation {
         igblast_databases
         use_igblast
         mb_scripts
+        fwr4_seq
+        mb_error_rate
 
     main:
 
@@ -56,7 +58,7 @@ workflow annotation {
             reads_with_sample = sample_1000(chunked_merged_reads)
 
             // use matchbox
-            annotated_csv = matchbox_annotate(reads_with_sample, igblast_databases, mb_scripts).annotation
+            annotated_csv = matchbox_annotate(reads_with_sample, igblast_databases, mb_scripts, fwr4_seq, mb_error_rate).annotation
 
             // merge the tsvs
             grouped_csvs = annotated_csv.groupTuple(by: 0) // group by first element (the sample ID)

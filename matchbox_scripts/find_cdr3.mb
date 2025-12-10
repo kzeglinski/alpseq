@@ -1,4 +1,4 @@
-fwr4 = TGGGGCAAAGGGACCCAGGTCAC
+fwr4 = args.fwr4
 
 refs = fasta('trimmed_reference.fasta')
 

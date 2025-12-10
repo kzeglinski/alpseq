@@ -12,6 +12,8 @@ process matchbox_annotate {
     tuple val(sample_id), path(reads), path(read_sample)
     val igblast_databases
     val mb_scripts
+    val fwr4_seq
+    val mb_error_rate
 
     output:
     tuple val(sample_id), path('*_mb_annotation.csv'), emit: annotation
@@ -29,7 +31,7 @@ process matchbox_annotate {
     echo "id,v_gene,cdr3_nt,cdr3_aa,full_seq_nt,full_seq_aa" > \${read_base_name}_mb_annotation.csv
 
     # then run matchbox
-    matchbox --script-file ${mb_scripts}/generate_reference_counts.mb $read_sample -e 0.2 --threads ${task.cpus} --args "references = '${igblast_databases}/databases/imgt_alpaca_ighv'" -o "."
+    matchbox --script-file ${mb_scripts}/generate_reference_counts.mb $read_sample -e 0.2 --threads ${task.cpus} --args "references = '${igblast_databases}/databases/imgt_alpaca_ighv', fwr4 = '$fwr4_seq'" -o "."
     sort -nk2 names.csv -t, | tail -n 15 | cut -f1 -d, > names_sorted.csv
     sed -i '1iname' names_sorted.csv
 
@@ -39,6 +41,6 @@ process matchbox_annotate {
 
     # then process the data
     # (ideally, matchbox should also be able to add the header to this csv output)
-    matchbox --script-file ${mb_scripts}/find_cdr3_rescue.mb $reads -e 0.4 --threads ${task.cpus} >> \${read_base_name}_mb_annotation.csv
+    matchbox --script-file ${mb_scripts}/find_cdr3_rescue.mb $reads -e $mb_error_rate --threads ${task.cpus} --args "fwr4 = '$fwr4_seq'" >> \${read_base_name}_mb_annotation.csv
     """
 }

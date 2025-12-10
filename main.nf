@@ -33,6 +33,7 @@ Optional (only needed for advanced users)
 --igblast_databases   : location of the igblast databases (default: "$projectDir/igblast_refs/")
 --adapter_r1          : pattern for trimgalore to trim off R1 (default: "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA")
 --adapter_r2          : pattern for trimgalore to trim off R2 (default: "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT")
+--fwr4_seq            : nt sequence of fwr4 (only used for annotation with matchbox)
 --maximum_overlap     : maximum overlap (in bp) of the two reads (default: 200)
 --chunk_size          : size of chunks to use for annotation (default: 25000)
 """
@@ -54,10 +55,12 @@ adapter_r1 = params.adapter_r1
 adapter_r2 = params.adapter_r2
 sequence_trim_5p = params.sequence_trim_5p
 sequence_trim_3p = params.sequence_trim_3p
+fwr4_seq = params.fwr4_seq
 
 // validate these are numbers with appropriate limits
 maximum_overlap = params.maximum_overlap
 chunk_size = params.chunk_size
+mb_error_rate = params.mb_error_rate
 
 // boolean
 use_igblast = params.use_igblast
@@ -163,7 +166,7 @@ workflow{
     multiqc_plots = quality_control.out.multiqc_plots
 
     // annotation using
-    annotated_tsvs = annotation(trimmed_and_merged_reads, igblast_databases, use_igblast, mb_scripts)
+    annotated_tsvs = annotation(trimmed_and_merged_reads, igblast_databases, use_igblast, mb_scripts, fwr4_seq, mb_error_rate)
 
     // R processing of the IgBLAST output
     r_processing(annotated_tsvs, use_igblast)

@@ -21,4 +21,9 @@ Updates to clustering scheme (threshold is now 80%), added support for [matchbox
 ## [v0.5.0]
 
 Fixed some bugs (broken tag for process, missing docker container for matchbox, error in clustering when the number of rounds does not equal 2)
-Added parameter validation
+Added some new features:
+- parameter validation
+- FWR4 region (for matchbox annotation) can now be set as a parameter
+- the error rate used for matchbox annotation can now be set as a parameter
+- added in-frame check for matchbox annotated sequences
+
