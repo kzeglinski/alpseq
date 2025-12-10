@@ -1,6 +1,6 @@
 process render_report {
     tag "creating report"
-    label 'process_high'
+    label 'process_medium'
     publishDir "${params.out_dir}/report/", mode: 'copy', pattern: "*.html"
    // stageInMode 'copy'
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
@@ -132,10 +132,11 @@ process render_qc_report {
     tar -xvf _extensions.tar
     tar -xvf _template.tar
 
-    if [ $use_igblast ]; then
+    if [ $use_igblast = true ]; then
         quarto render qc_report.qmd --log qc_report.log
     else
         quarto render qc_report_mb.qmd --log qc_report.log
     fi
     """
 }
+

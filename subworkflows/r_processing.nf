@@ -160,13 +160,10 @@ process process_mb_output {
         mutate(
         cdr3_aa = str_replace_all(cdr3_aa, "-", "*"),
         full_seq_aa = str_replace_all(full_seq_aa, "-", "*")) %>%
-        mutate(productive = !(str_detect(full_seq_aa, fixed("*")) | str_detect(cdr3_aa, fixed("*"))))
-
-    # frame check
-    entire_data <- entire_data %>%
-        mutate(productivity = case_when(
-        str_detect(full_seq_aa, cdr3_aa) ~ productivity,
-        .default = FALSE))
+        mutate(productive = !(str_detect(full_seq_aa, fixed("*")) | str_detect(cdr3_aa, fixed("*")))) %>%
+        mutate(productive = case_when(
+            str_detect(full_seq_aa, fixed(cdr3_aa)) ~ productive,
+            .default = FALSE))
 
     # productivity
     entire_data %>%

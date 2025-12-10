@@ -61,6 +61,7 @@ fwr4_seq = params.fwr4_seq
 maximum_overlap = params.maximum_overlap
 chunk_size = params.chunk_size
 mb_error_rate = params.mb_error_rate
+num_v_genes = params.num_v_genes
 
 // boolean
 use_igblast = params.use_igblast
@@ -166,7 +167,7 @@ workflow{
     multiqc_plots = quality_control.out.multiqc_plots
 
     // annotation using
-    annotated_tsvs = annotation(trimmed_and_merged_reads, igblast_databases, use_igblast, mb_scripts, fwr4_seq, mb_error_rate)
+    annotated_tsvs = annotation(trimmed_and_merged_reads, igblast_databases, use_igblast, mb_scripts, fwr4_seq, mb_error_rate, num_v_genes)
 
     // R processing of the IgBLAST output
     r_processing(annotated_tsvs, use_igblast)
