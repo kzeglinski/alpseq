@@ -1,4 +1,5 @@
 #!/usr/bin/env nextflow
+nextflow.enable.dsl=2
 
 /*
  * A nextflow pipeline for the pre-processing of
@@ -6,6 +7,10 @@
  */
 
 version = "v0.5.0"
+
+/*
+ * help message
+ */
 
 if(params.help == true){
 log.info """
@@ -40,31 +45,9 @@ Optional (only needed for advanced users)
 System.exit(0)
 }
 
-// TODO: parameter validation
-// validate that these files/directories exist
-read_dir = params.read_dir
-sample_sheet = params.sample_sheet
-igblast_databases = params.igblast_databases
-mb_scripts = params.mb_scripts
-template_dir = params.template_dir
-extensions_dir = params.extensions_dir
-quarto_base_yaml = params.quarto_base_yaml
-
-// validate that these are strings
-adapter_r1 = params.adapter_r1
-adapter_r2 = params.adapter_r2
-sequence_trim_5p = params.sequence_trim_5p
-sequence_trim_3p = params.sequence_trim_3p
-fwr4_seq = params.fwr4_seq
-
-// validate these are numbers with appropriate limits
-maximum_overlap = params.maximum_overlap
-chunk_size = params.chunk_size
-mb_error_rate = params.mb_error_rate
-num_v_genes = params.num_v_genes
-
-// boolean
-use_igblast = params.use_igblast
+/*
+ * initial log message
+ */
 
 log.info """
 ꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙꧙
@@ -85,7 +68,155 @@ log.info """
 """
 
 /*
- * Bring in modules
+ * parameter validation
+ */
+
+// can't work out how to have these functions in a separate file so they just have to be here for now >:(
+/*
+ * Validate a filesystem path:
+ *   - type 'file'  → must exist and be a file
+ *   - type 'dir'   → must exist and be a directory
+ */
+def validate_path = { String name, def path, String type ->
+    if (!path) {
+        exit 1, "ERROR: Missing required parameter --${name}"
+    }
+
+    def obj = file(path)
+
+    if (type == "file") {
+        if (!obj.exists() || !obj.isFile()) {
+            exit 1, "ERROR: Required file does not exist or is not a file: --${name} (${path})"
+        }
+    } else if (type == "dir") {
+        if (!obj.exists() || !obj.isDirectory()) {
+            exit 1, "ERROR: Required directory does not exist or is not a directory: --${name} (${path})"
+        }
+    } else {
+        exit 1, "ERROR: Unknown validation type '${type}' for --${name}; expected 'file' or 'dir'"
+    }
+}
+
+/*
+ * Validate that a parameter is a DNA sequence:
+ *   - must be a string
+ *   - only A/T/G/C allowed (case-insensitive)
+ */
+def validate_dna_seq = { String name, def seq ->
+    if (!seq) {
+        exit 1, "ERROR: Missing required parameter --${name}"
+    }
+
+    if (!(seq instanceof String)) {
+        exit 1, "ERROR: Parameter --${name} must be a string, but got: ${seq.getClass().getSimpleName()}"
+    }
+
+    // Regex ensures only A/T/G/C (case insensitive)
+    if (!(seq ==~ /(?i)^[ATGC]+$/)) {
+        exit 1, """|
+        ERROR: Invalid DNA sequence for --${name}
+        Provided: '${seq}'
+        Allowed characters: A, T, G, C (case-insensitive)
+        """.stripIndent()
+    }
+}
+
+/*
+ * Validate that a parameter is a DNA sequence:
+ *   - parameter must exist
+ *   - empty string ("") is allowed and considered valid
+ *   - if non-empty, only A/T/G/C allowed (case-insensitive)
+ */
+def validate_dna_seq_allow_empty = { String name, def seq ->
+    if (seq == null) {
+        exit 1, "ERROR: Missing required parameter --${name}"
+    }
+
+    if (!(seq instanceof String)) {
+        exit 1, "ERROR: Parameter --${name} must be a string, but got: ${seq.getClass().getSimpleName()}"
+    }
+
+    // Allow empty string
+    if (seq.trim() == '') {
+        return  // empty DNA sequence is considered valid
+    }
+
+    // Validate non-empty sequences
+    if (!(seq ==~ /(?i)^[ATGC]+$/)) {
+        exit 1, """|
+        ERROR: Invalid DNA sequence for --${name}
+        Provided: '${seq}'
+        Allowed characters: A, T, G, C (case-insensitive), or empty string
+        """.stripIndent()
+    }
+}
+
+/*
+ * Validate that a parameter is boolean (true/false)
+ */
+def validate_bool = { String name, def value ->
+    if (value == null) {
+        exit 1, "ERROR: Missing required boolean parameter --${name}"
+    }
+
+    if (!(value instanceof Boolean)) {
+        exit 1, "ERROR: Parameter --${name} must be boolean (true/false), but got: ${value} (${value.getClass().getSimpleName()})"
+    }
+}
+
+/*
+ * Validate that a parameter is a number within a specified inclusive range
+ * min and max may be ints or floats
+ */
+def validate_number = { String name, def value, def min, def max ->
+    if (value == null) {
+        exit 1, "ERROR: Missing required numeric parameter --${name}"
+    }
+
+    // Accept Integer or Float/Double
+    if (!(value instanceof Number)) {
+        exit 1, "ERROR: Parameter --${name} must be a number, but got: ${value} (${value.getClass().getSimpleName()})"
+    }
+
+    if (value < min || value > max) {
+        exit 1, "ERROR: Parameter --${name} must be between ${min} and ${max} (inclusive), but got: ${value}"
+    }
+}
+
+// files or directories that must exist    
+validate_path('sample_sheet', params.sample_sheet, 'file')
+validate_path('template_dir', params.template_dir, 'file') // kind of dumb the param is called template_dir but its a tar, should change at some point
+validate_path('extensions_dir', params.extensions_dir, 'file')
+validate_path('mb_scripts', params.mb_scripts, 'dir')
+validate_path('igblast_databases', params.igblast_databases, 'dir')
+validate_path('read_dir', params.read_dir, 'dir')
+
+// validate DNA sequence parameters
+validate_dna_seq('adapter_r1', params.adapter_r1)
+validate_dna_seq('adapter_r2', params.adapter_r2)
+validate_dna_seq('fwr4_seq', params.fwr4_seq)
+
+// DNA sequence or empty string allowed
+validate_dna_seq_allow_empty('sequence_trim_5p', params.sequence_trim_5p)
+validate_dna_seq_allow_empty('sequence_trim_3p', params.sequence_trim_3p)
+
+// numbers, within expected range
+validate_number('mb_error_rate', params.mb_error_rate, 0, 0.4)
+validate_number('num_v_genes', params.num_v_genes, 1, 999)
+validate_number('maximum_overlap', params.maximum_overlap, 1, 999)
+validate_number('chunk_size', params.chunk_size, 100, 100000)
+
+// boolean
+validate_bool('use_igblast', params.use_igblast)
+validate_bool('sanger_mode', params.sanger_mode)
+validate_bool('enable_conda', params.enable_conda)
+validate_bool('help', params.help)
+validate_bool('qc_only', params.qc_only)
+
+log.info "✓ Parameter validation successful!"
+
+/*
+ * bring in modules
  */
 include { parse_sample_sheet } from './subworkflows/file_import'
 include { trim_merge } from './subworkflows/trim_merge'
@@ -97,7 +228,7 @@ include { prepare_report_templates } from './subworkflows/reporting'
 include { render_qc_report } from './subworkflows/reporting'
 
 /*
- * Run the workflow
+ * run the workflow
  */
 
 // to do: allow for non gzipped input (trimgalore expects it rn)
@@ -138,7 +269,7 @@ process basecall_sanger {
 workflow{
     // read the sample sheet to associate sample names and fastq files
     // output is a tuple with [sample_num, [R1, R2]]
-    parse_sample_sheet(read_dir, sample_sheet)
+    parse_sample_sheet(params.read_dir, params.sample_sheet)
     sample_read_pairs = parse_sample_sheet.out.samples_with_reads
     report_sample = parse_sample_sheet.out.report_sample //association bw sample ID and report ID
     sample_sheet_checked = parse_sample_sheet.out.sample_sheet_checked.first() //sample sheet with optional columns filled out. have to use first() to make it a value channel
@@ -148,9 +279,9 @@ workflow{
     if (params.sanger_mode) {
         basecall_sanger(sample_read_pairs)
         basecalled_reads = basecall_sanger.out.basecalled_fastq
-        trim_merge(basecalled_reads, adapter_r1, adapter_r2, maximum_overlap)
+        trim_merge(basecalled_reads, params.adapter_r1, params.adapter_r2, params.maximum_overlap)
     } else {
-        trim_merge(sample_read_pairs, adapter_r1, adapter_r2, maximum_overlap)
+        trim_merge(sample_read_pairs, params.adapter_r1, params.adapter_r2, params.maximum_overlap)
     }
 
     // trim and merge the data
@@ -167,10 +298,10 @@ workflow{
     multiqc_plots = quality_control.out.multiqc_plots
 
     // annotation using
-    annotated_tsvs = annotation(trimmed_and_merged_reads, igblast_databases, use_igblast, mb_scripts, fwr4_seq, mb_error_rate, num_v_genes)
+    annotated_tsvs = annotation(trimmed_and_merged_reads, params.igblast_databases, params.use_igblast, params.mb_scripts, params.fwr4_seq, params.mb_error_rate, params.num_v_genes)
 
     // R processing of the IgBLAST output
-    r_processing(annotated_tsvs, use_igblast)
+    r_processing(annotated_tsvs, params.use_igblast)
 
 
     processed_tsv = r_processing.out.processed_tsv.collect(flat: false).flatMap{it -> it}
@@ -201,14 +332,14 @@ workflow{
         sample_sheet_for_pan_reports,
         original_qmd_templates,
         report_data,
-        use_igblast)
+        params.use_igblast)
 
         edited_qmd_templates = prepare_report_templates.out.report_templates.collect()
 
         render_report(
         sample_sheet_for_pan_reports,
-        template_dir,
-        extensions_dir,
+        params.template_dir,
+        params.extensions_dir,
         edited_qmd_templates,
         report_data)
     }
@@ -218,9 +349,9 @@ workflow{
         sample_sheet_checked,
         multiqc_plots,
         percentage_passing_trim_merge,
-        template_dir,
-        extensions_dir,
+        params.template_dir,
+        params.extensions_dir,
         original_qmd_templates,
-        use_igblast)
+        params.use_igblast)
 
 }
