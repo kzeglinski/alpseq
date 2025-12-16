@@ -31,6 +31,7 @@ process flash {
         -o ${prefix} \\
         -M $maximum_overlap \\
         -z \\
+        -t $task.cpus \\
         ${reads[0]} \\
         ${reads[1]}
 

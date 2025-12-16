@@ -1,7 +1,7 @@
 // convert fastq to fasta (needed for IgBLAST)
 process fastq_to_fasta {
     tag "$sequence_id"
-    label 'process_medium'
+    label 'process_low'
 
     conda (params.enable_conda ? 'bioconda::seqkit=2.3.1' : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
@@ -24,7 +24,7 @@ process fastq_to_fasta {
 // sample 1000 reads from fastq (needed for matchbox annotation)
 process sample_1000 {
     tag "$sequence_id"
-    label 'process_medium'
+    label 'process_low'
 
     conda (params.enable_conda ? 'bioconda::seqkit=2.3.1' : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?

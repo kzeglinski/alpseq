@@ -2,7 +2,7 @@
 // general layout is based on the nf-core modules
 process matchbox_annotate {
     tag "$sample_id"
-    label 'process_medium'
+    label 'process_low'
     publishDir "${params.out_dir}/original_annotation", mode: 'copy', pattern: "*_annotation.csv"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'library://kzeglinski/kzeglinski/nanologix-matchbox:v0.0.4' :

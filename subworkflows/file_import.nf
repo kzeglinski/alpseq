@@ -54,7 +54,7 @@ workflow parse_sample_sheet {
 
 process check_sample_sheet {
     tag "checking sample sheet"
-    label 'process_low'
+    label 'process_tiny'
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'docker://ghcr.io/kzeglinski/alpseq:0.4.0' :
         'ghcr.io/kzeglinski/alpseq:0.4.0' }"

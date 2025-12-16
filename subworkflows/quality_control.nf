@@ -2,7 +2,7 @@ include { multiqc } from '../modules/multiqc'
 
 process percentage_passing_trim_merge {
     tag "$sequence_id"
-    label 'process_medium'
+    label 'process_low'
 
     input:
     tuple val(sequence_id), path(before_trimming), path(after_trimming)
@@ -30,7 +30,7 @@ process percentage_passing_trim_merge {
 }
 
 process cat_all_percentage_passing_trim_merge {
-    label 'process_low'
+    label 'process_tiny'
     publishDir "${params.out_dir}", mode: 'copy', pattern: "percentage_passing_trim_merge.tsv"
 
     input:

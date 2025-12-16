@@ -53,7 +53,7 @@ workflow annotation {
             // use jakob's cdr3 finder
             // split reads into chunks
             trimmed_and_merged_reads
-                .splitFastq(by: 1000000, file: true)
+                .splitFastq(by: params.chunk_size, file: true)
                 .set{chunked_merged_reads}
             // sample 1000 reads
             reads_with_sample = sample_1000(chunked_merged_reads)
