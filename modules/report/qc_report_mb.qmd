@@ -27,7 +27,7 @@ format:
 ---
 
 ## Introduction
-This report contains the QC results for your recent nanologix run. Please check over these QC results carefully to ensure that both the sequencing libraries and nanobody libraries look ok.
+This report contains the QC results for your recent *alpseq* run. Please check over these QC results carefully to ensure that both the sequencing libraries and nanobody libraries look ok.
 
 ```{r}
 # our pre-render script
