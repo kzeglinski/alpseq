@@ -46,6 +46,7 @@ workflow annotation {
         fwr4_seq
         mb_error_rate
         num_v_genes
+        igblast_db_name
 
     main:
 
@@ -59,7 +60,7 @@ workflow annotation {
             reads_with_sample = sample_1000(chunked_merged_reads)
 
             // use matchbox
-            annotated_csv = matchbox_annotate(reads_with_sample, igblast_databases, mb_scripts, fwr4_seq, mb_error_rate, num_v_genes).annotation
+            annotated_csv = matchbox_annotate(reads_with_sample, igblast_databases, mb_scripts, fwr4_seq, mb_error_rate, num_v_genes, igblast_db_name).annotation
 
             // merge the tsvs
             grouped_csvs = annotated_csv.groupTuple(by: 0) // group by first element (the sample ID)
@@ -84,7 +85,8 @@ workflow annotation {
                 chunked_merged_fastas,
                 igblast_databases,
                 igdata_dir,
-                igblastdb_dir).airr_table
+                igblastdb_dir,
+                igblast_db_name).airr_table
 
             // merge the tsvs
             grouped_tsvs = annotated_tsv.groupTuple(by: 0) // group by first element (the sample ID)

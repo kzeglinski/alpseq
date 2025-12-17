@@ -298,7 +298,7 @@ workflow{
     multiqc_plots = quality_control.out.multiqc_plots
 
     // annotation using
-    annotated_tsvs = annotation(trimmed_and_merged_reads, params.igblast_databases, params.use_igblast, params.mb_scripts, params.fwr4_seq, params.mb_error_rate, params.num_v_genes)
+    annotated_tsvs = annotation(trimmed_and_merged_reads, params.igblast_databases, params.use_igblast, params.mb_scripts, params.fwr4_seq, params.mb_error_rate, params.num_v_genes, params.igblast_db_name)
 
     // R processing of the IgBLAST output
     r_processing(annotated_tsvs, params.use_igblast)

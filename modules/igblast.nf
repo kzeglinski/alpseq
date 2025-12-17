@@ -15,6 +15,7 @@ process igblast {
     val igblast_databases
     env IGDATA
     env IGBLASTDB
+    val igblast_db_name
 
     output:
     tuple val(sequence_id), path('*_igblast.tsv'), emit: airr_table
@@ -28,13 +29,13 @@ process igblast {
     # run igblast
     # outfmt 19 = AIRR format (tsv, easy to use in downstream steps)
     # num_alignments_* = only report the best hit
-    igblastn -germline_db_V ${igblast_databases}/databases/imgt_alpaca_ighv \
-        -germline_db_J ${igblast_databases}/databases/imgt_alpaca_ighj \
-        -germline_db_D ${igblast_databases}/databases/imgt_alpaca_ighd \
-        -organism alpaca \
+    igblastn -germline_db_V ${igblast_databases}/databases/imgt_${igblast_db_name}_ighv \
+        -germline_db_J ${igblast_databases}/databases/imgt_${igblast_db_name}_ighj \
+        -germline_db_D ${igblast_databases}/databases/imgt_${igblast_db_name}_ighd \
+        -organism $igblast_db_name \
         -query $reads \
         -num_threads $task.cpus \
-        -auxiliary_data ${igblast_databases}/igdata/optional_file/alpaca_gl.aux \
+        -auxiliary_data ${igblast_databases}/igdata/optional_file/${igblast_db_name}_gl.aux \
         -show_translation \
         -num_alignments_V 1 -num_alignments_D 1 -num_alignments_J 1 \
         -outfmt 19 > \${read_base_name}_igblast.tsv

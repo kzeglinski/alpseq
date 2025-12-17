@@ -15,6 +15,7 @@ process matchbox_annotate {
     val fwr4_seq
     val mb_error_rate
     val num_v_genes
+    val igblast_db_name
 
     output:
     tuple val(sample_id), path('*_mb_annotation.csv'), emit: annotation
@@ -32,7 +33,7 @@ process matchbox_annotate {
     echo "id,v_gene,cdr3_nt,cdr3_aa,full_seq_nt,full_seq_aa" > \${read_base_name}_mb_annotation.csv
 
     # then run matchbox
-    matchbox --script-file ${mb_scripts}/generate_reference_counts.mb $read_sample -e 0.2 --threads ${task.cpus} --args "references = '${igblast_databases}/databases/imgt_alpaca_ighv', fwr4 = '$fwr4_seq'" -o "."
+    matchbox --script-file ${mb_scripts}/generate_reference_counts.mb $read_sample -e 0.2 --threads ${task.cpus} --args "references = '${igblast_databases}/databases/imgt_${igblast_db_name}_ighv', fwr4 = '$fwr4_seq'" -o "."
     sort -nk2 names.csv -t, | tail -n $num_v_genes | cut -f1 -d, > names_sorted.csv
     sed -i '1iname' names_sorted.csv
 
