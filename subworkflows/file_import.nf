@@ -150,7 +150,11 @@ process check_sample_sheet {
         report_subset <- sample_sheet[sample_sheet[["report_id"]] == report_id,]
         if(!any(report_subset[["round"]] == 0)){
             warning("No R0 sample found for report ", report_id, ". Pre-processing and QC will still be performed, but no pan report will be generated.")
-            sample_sheet_for_reports <- sample_sheet_for_reports[sample_sheet_for_reports[["report_id"]] != report_id,]
+            if(nrow(sample_sheet_for_reports) == 1){
+              sample_sheet_for_reports <- data.frame()
+            } else {
+              sample_sheet_for_reports <- sample_sheet_for_reports[sample_sheet_for_reports[["report_id"]] != report_id,]
+            }
         }
     }
 
